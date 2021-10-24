@@ -4,12 +4,13 @@
 # October 2021
 
 class Vec3d:
-  def __init__(self, x, y, z):
+  w = 0
+
+  def __init__(self, x = 0, y = 0, z = 0):
     self.x = x
     self.y = y
     self.z = z
-    self.w = 0
-  
+    
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
       return str
@@ -58,7 +59,16 @@ class Vec3d:
 
     print("\nSCALED VECTOR %s" % self)
 
+  def dot_product(self, other):
+    x = self.x * other.x
+    y = self.y * other.y
+    z = self.z * other.z
 
+    result = Vec3d(x, y, z)
+    
+    print("\n DOT PRODUCT RESULT: %s" % result)
+
+    return result
 
 
 
@@ -78,5 +88,9 @@ def main():
 
   vec5 = Vec3d(0.2, 0.5, 0.7)
   vec5.scale(10)
+
+  vec6 = Vec3d(2.0, 3.0, 4.0)
+  vec7 = Vec3d(5.0, 6.0, 7.0)
+  vec6.dot_product(vec7)
 
 main()
