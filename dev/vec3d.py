@@ -3,6 +3,8 @@
 # StudentId: 260201039
 # October 2021
 
+import math
+
 class Vec3d:
   w = 0
 
@@ -20,7 +22,7 @@ class Vec3d:
     self.y += other.y
     self.z += other.z
     
-    print("\nRESULT OF ADDITION: %s" % self)
+    print("\n RESULT OF ADDITION: %s" % self)
   
   def substract(self, vec2):
     """Substract vec2 from vec1 (vec1 - vec2)
@@ -33,7 +35,7 @@ class Vec3d:
     self.add(vec2)
     vec2.negative()
 
-    print("\nRESULT OF SUBSTRACTION: %s" % (self))
+    print("\n RESULT OF SUBSTRACTION: %s" % (self))
   
   def clone(self):
     new_x = self.x
@@ -41,7 +43,7 @@ class Vec3d:
     new_z = self.z
     new_vec3d = Vec3d(new_x, new_y, new_z)
 
-    print("\nCLONE: %s" % (new_vec3d))
+    print("\n CLONE: %s" % (new_vec3d))
 
     return new_vec3d
 
@@ -50,28 +52,48 @@ class Vec3d:
     self.y = -self.y
     self.z = -self.z
 
-    print("\nNEGATED VECTOR %s" % self)
+    print("\n NEGATED VECTOR %s" % self)
 
   def scale(self, factor):
     self.x *= factor
     self.y *= factor
     self.z *= factor
 
-    print("\nSCALED VECTOR %s" % self)
+    print("\n SCALED VECTOR %s" % self)
 
   def dot_product(self, other):
     x = self.x * other.x
     y = self.y * other.y
     z = self.z * other.z
 
-    result = Vec3d(x, y, z)
+    result = x + y + z
     
     print("\n DOT PRODUCT RESULT: %s" % result)
 
     return result
 
+  def magnitude(self):
+    dp = self.dot_product(self)
+    sqrt = math.sqrt(dp)
 
+    print("\n MAGNITUDE IS: %s" % sqrt)
 
+    return sqrt
+
+  def angle(self, other):
+    """Find angle between two vectors in radian
+
+    Returns:
+        float: angle between vectors in radian
+    """
+    dp = self.dot_product(other)
+    magn_mult = self.magnitude() * other.magnitude()
+    radian = math.acos(dp / magn_mult)
+    degree = math.degrees(radian)
+
+    print("\n ANGLE IS %s" % degree)
+
+    return degree
 
 
 
@@ -92,5 +114,12 @@ def main():
   vec6 = Vec3d(2.0, 3.0, 4.0)
   vec7 = Vec3d(5.0, 6.0, 7.0)
   vec6.dot_product(vec7)
+
+  vec8 = Vec3d(2.0, 3.0, 6.0)
+  vec8.magnitude()
+
+  vec9 = Vec3d(3.0, 6.0, 1.0)
+  vec10 = Vec3d(-5.0, -9.0, 4.0)
+  vec9.angle(vec10)
 
 main()
