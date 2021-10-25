@@ -3,23 +3,29 @@
 # StudentId: 260201039
 # October 2021
 
+import math
+
 class Vec3d:
-  def __init__(self, x, y, z):
+  w = 0
+
+  def __init__(self, x = 0, y = 0, z = 0):
     self.x = x
     self.y = y
     self.z = z
-    self.w = 0
-  
+    
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
       return str
 
   def add(self, other):
+    """Add another vector to this vector
+
+    Args:
+        other (Vec3d): 3D vector to be added to this vector
+    """
     self.x += other.x
     self.y += other.y
     self.z += other.z
-    
-    print("\nRESULT OF ADDITION: %s" % self)
   
   def substract(self, vec2):
     """Substract vec2 from vec1 (vec1 - vec2)
@@ -31,52 +37,113 @@ class Vec3d:
     vec2.negative()
     self.add(vec2)
     vec2.negative()
-
-    print("\nRESULT OF SUBSTRACTION: %s" % (self))
   
   def clone(self):
+    """Clone this vector
+
+    Returns:
+        Vec3d: The cloned vector which its coordinates are the same as the original one
+    """
     new_x = self.x
     new_y = self.y
     new_z = self.z
     new_vec3d = Vec3d(new_x, new_y, new_z)
-
-    print("\nCLONE: %s" % (new_vec3d))
-
     return new_vec3d
 
   def negative(self):
+    """Convert this vector to its negative
+    """
     self.x = -self.x
     self.y = -self.y
     self.z = -self.z
 
-    print("\nNEGATED VECTOR %s" % self)
-
   def scale(self, factor):
+    """Scale this vector
+
+    Args:
+        factor (int): Scaling factor
+    """
     self.x *= factor
     self.y *= factor
     self.z *= factor
 
-    print("\nSCALED VECTOR %s" % self)
+  def dot_product(self, other):
+    """Dot product of the vector with another vector
 
+    Args:
+        other (Vec3d): Other vector to calculate its dot product with this vector
 
+    Returns:
+        float: Result of the dot product
+    """
+    x = self.x * other.x
+    y = self.y * other.y
+    z = self.z * other.z
+    result = x + y + z
+    return result
 
+  def magnitude(self):
+    """Calculate the magnitude of this vector
 
+    Returns:
+        float: Magnitude of this vector
+    """
+    dp = self.dot_product(self)
+    sqrt = math.sqrt(dp)
+    return sqrt
 
+  def angle(self, other):
+    """Find angle between two vectors in radian
 
+    Returns:
+        float: angle between vectors in radian
+    """
+    dp = self.dot_product(other)
+    magn_mult = self.magnitude() * other.magnitude()
+    radian = math.acos(dp / magn_mult)
+    degree = math.degrees(radian)
+    return degree
 
+  def basis(self):
+    """Calculate basis vector of this vector
 
+    Returns:
+        Vec3d: Basis vector of this vector
+    """
+    magn = self.magnitude()
+    basis_x = self.x / magn
+    basis_y = self.y / magn
+    basis_z = self.z / magn
+    basis = Vec3d(basis_x, basis_y, basis_z)
+    return basis
+  
+  def project(self, other):
+    """Take projection of this vector onto another one
 
+    Args:
+        other (Vec3d): The vector to be projected on
 
-def main():
-  vec1 = Vec3d(1.3, 2.4, 5)
-  vec2 = Vec3d(1.7, 2.6, 15)
-  vec1.add(vec2)
+    Returns:
+        Vec3d: Projected vector of this vector onto other vector
+    """
+    dp = self.dot_product(other)
+    proj_magn = dp / other.magnitude()
+    temp_vec = other.basis()
+    temp_vec.scale(proj_magn)
+    proj = temp_vec
+    return proj
 
-  vec3 = Vec3d(2.9, 1.5, 3)
-  vec4 = Vec3d(0.9, 0.5, 3)
-  vec3.substract(vec4)
+  def cross_product(self, other):
+    """Calculate cross product of this vector with another one
 
-  vec5 = Vec3d(0.2, 0.5, 0.7)
-  vec5.scale(10)
+    Args:
+        other (Vec3d): The vector to be cross product with this vector
 
-main()
+    Returns:
+        Vec3d: The vector of the cross product result
+    """
+    x = self.y * other.z - self.z * other.y
+    y = self.z * other.x - self.x * other.z
+    z = self.x * other.y - self.y - other.x
+    cp = Vec3d(x, y, z)
+    return cp
