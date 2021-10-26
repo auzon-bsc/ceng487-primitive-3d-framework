@@ -5,12 +5,22 @@
 
 import math
 
+from mat3d import Mat3d
+
 class Vec3d:
+  m = 4
+  n = 1
+
   def __init__(self, x = 0, y = 0, z = 0, w=0):
     self.x = x
     self.y = y
     self.z = z
     self.w = w
+
+    self.matrix = [[self.x],
+                   [self.y],
+                   [self.z],
+                   [self.w]]
     
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
@@ -146,3 +156,35 @@ class Vec3d:
     z = self.x * other.y - self.y - other.x
     cp = Vec3d(x, y, z)
     return cp
+  
+  def transform(self, transformation):
+    if transformation.n != 4:
+      print("Error: invalid matrix size")
+    else:
+      x = 0
+      x += transformation.matrix[0][0] * self.x
+      x += transformation.matrix[0][1] * self.y
+      x += transformation.matrix[0][2] * self.z
+      x += transformation.matrix[0][3] * self.w
+
+      y = 0
+      y += transformation.matrix[1][0] * self.x
+      y += transformation.matrix[1][1] * self.y
+      y += transformation.matrix[1][2] * self.z
+      y += transformation.matrix[1][3] * self.w
+
+      z = 0
+      z += transformation.matrix[2][0] * self.x
+      z += transformation.matrix[2][1] * self.y
+      z += transformation.matrix[2][2] * self.z
+      z += transformation.matrix[2][3] * self.w
+
+      w = 0
+      w += transformation.matrix[3][0] * self.x
+      w += transformation.matrix[3][1] * self.y
+      w += transformation.matrix[3][2] * self.z
+      w += transformation.matrix[3][3] * self.w
+
+      tmp_vec = Vec3d(x, y, z, w)
+
+      return tmp_vec

@@ -7,12 +7,25 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 import sys
 
+from obj3d import Obj3d
+from vec3d import Vec3d
+from mat3d import Mat3d
+
 # Some api in the chain is translating the keystrokes to this octal string
 # so instead of saying: ESCAPE = 27, we use the following.
 ESCAPE = '\033'
 
 # Number of the glut window.
 window = 0
+
+# Triangle obj
+tri_v1 = Vec3d(0.0, 1.0, 0.0, 1.0)	# Top vertice
+tri_v2 = Vec3d(-1.0, -1.0, 0.0, 1.0)	# Bottom left vertice
+tri_v3 = Vec3d(1.0, -1.0, 0.0, 1.0)	# Bottom right vertice
+tri_vertices = [tri_v1, tri_v2, tri_v3]
+tri = Obj3d(tri_vertices)
+tri_r = Mat3d.rotation("z", 0.01)
+tri.append_transformation(tri_r)
 
 # A general OpenGL initialization function.  Sets all of the initial parameters. 
 def InitGL(Width, Height):				# We call this right after our OpenGL window is created.
@@ -53,13 +66,15 @@ def DrawGLScene():
 	# Draw a triangle
 	glBegin(GL_POLYGON)                 # Start drawing a polygon
 	glColor3f(1.0, 0.0, 0.0)            # Red
-	glVertex3f(0.0, 1.0, 0.0)           # Top
+	glVertex3f(tri.vertices[0].x, tri.vertices[0].y, tri.vertices[0].z)           # Top
 	glColor3f(0.0, 1.0, 0.0)            # Green
-	glVertex3f(1.0, -1.0, 0.0)          # Bottom Right
+	glVertex3f(tri.vertices[1].x, tri.vertices[1].y, tri.vertices[1].z)          # Bottom Right
 	glColor3f(0.0, 0.0, 1.0)            # Blue
-	glVertex3f(-1.0, -1.0, 0.0)         # Bottom Left
+	glVertex3f(tri.vertices[2].x, tri.vertices[2].y, tri.vertices[2].z)         # Bottom Left
 	glEnd()                             # We are done with the polygon
 
+	for i in range(3):
+		tri.vertices[i] = tri.vertices[i].transform(tri_r)
 
 	# Move Right 3.0 units.
 	glTranslatef(3.0, 0.0, 0.0)

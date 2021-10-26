@@ -3,7 +3,7 @@
 # StudentId: 260201039
 # October 2021
 
-import vec3d
+from vec3d import Vec3d
 
 class Obj3d:
   def __init__(self, arr) -> None:

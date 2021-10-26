@@ -74,7 +74,7 @@ class Mat3d:
     else:
       tmp_m = self.m
       tmp_n = other.n
-      tmp_mat = Mat3d(tmp_m, tmp_n)
+      tmp_mat = Mat3d()
       for i in range(0, tmp_m):
         for j in range(0, tmp_n):
           for k in range(0, self.n):
