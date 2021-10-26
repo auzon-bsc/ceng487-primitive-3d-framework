@@ -4,6 +4,7 @@
 # October 2021
 
 import numpy as np
+import math
 
 class Mat3d:
   m = 4
@@ -71,7 +72,7 @@ class Mat3d:
     return tmp_mat
 
   @staticmethod
-  def translate(x, y, z):
+  def translation(x, y, z):
     tmp_mat = Mat3d()
     tmp_arr = ([[1, 0, 0, x],
                 [0, 1, 0, y],
@@ -90,6 +91,35 @@ class Mat3d:
     tmp_mat.fill(tmp_arr)
     return tmp_mat
 
+  @staticmethod
+  def rotation(axis, degree):
+    tmp_mat = Mat3d()
+    radians = math.radians(degree)
+    c = math.cos(radians)
+    s = math.sin(radians)
+
+    match axis:
+      case "x":
+        tmp_arr = ([[1, 0, 0, 0],
+                    [0, c, -s, 0],
+                    [0, s, c, 0],
+                    [0, 0, 0, 1]])
+      case "y":
+        tmp_arr = ([[c, 0, s, 0],
+                    [0, 1, 0, 0],
+                    [-s, 0, c, 0],
+                    [0, 0, 0, 1]])
+      case "z":
+        tmp_arr = ([[c, -s, 0, 0],
+                    [s, c, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 1]])
+      case _:
+        print("Error: Invalid axis")
+    
+    tmp_mat.fill(tmp_arr)
+    return tmp_mat
+
 def main():
   A = ([[6, 1, 1, 3],
         [4, -2, 5, 1],
@@ -100,13 +130,16 @@ def main():
   print(a)
   print(a.inverse())
 
-  b = Mat3d.translate(2, 3, 4)
+  b = Mat3d.translation(2, 3, 4)
   print(b)
 
   c = Mat3d()
   c.fill(A)
   d = c.transpose()
   print(d)
+
+  e = Mat3d.rotation("x", 30)
+  print(e)
 
   pass
 
