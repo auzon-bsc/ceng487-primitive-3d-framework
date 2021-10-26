@@ -6,7 +6,17 @@
 import vec3d
 
 class Obj3d:
-  pass
+  def __init__(self, arr) -> None:
+      self.vertices = []
+      for point in arr:
+        self.vertices.append(point)
+      self.stack = []
+
+  def append_transformation(self, transformation):
+    self.stack.append(transformation)
+
+  def pop_transformation(self):
+    self.stack.pop()
 
 def main():
   pass
