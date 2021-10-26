@@ -68,7 +68,7 @@ def main():
               [4, -2, 5, 1],
               [2, 8, 7, 6],
               [3, 1, 9, 7]])
-  x = Mat3d(4, 4)
+  x = Mat3d()
   x.fill(A)
   print(x)
   print(x.inverse())
