@@ -3,6 +3,8 @@
 # StudentId: 260201039
 # October 2021
 
+import numpy as np
+
 class Mat3d:
   def __init__(self, m = 1, n = 1) -> None:
       self.m = m
@@ -22,7 +24,25 @@ class Mat3d:
           s += " " + str(num)
         s += " |"
       return s
-  
+
+  def fill(self, array2d):
+    is_rows_equal = len(array2d) == self.m
+    is_columns_equal = True
+    for i in range(0, len(array2d)):
+      is_columns_equal = len(array2d[i]) == self.n
+      if is_columns_equal == False:
+        break
+    
+    if is_rows_equal == False:
+      print("Error: size of the rows in the array does not match with matrix")
+    elif is_columns_equal == False:
+      print("Error: size of the columns in the array does not match with matrix")
+    
+    else:
+      for i in range(0, self.m):
+        for j in range(0, self.n):
+          self.matrix[i][j] = array2d[i][j]
+        
   def set_num(self, num, row, col):
     if (row - 1) > self.m or (col - 1) > self.n:
       print("Error: Invalid row and column locations")
@@ -41,8 +61,19 @@ class Mat3d:
           for k in range(0, self.n):
             tmp_mat.matrix[i][j] += self.matrix[i][k] * other.matrix[k][j]
       return tmp_mat
+  
+  def inverse(self):
+    return np.linalg.inv(self.matrix)
 
 def main():
+  A = ([[6, 1, 1, 3],
+              [4, -2, 5, 1],
+              [2, 8, 7, 6],
+              [3, 1, 9, 7]])
+  x = Mat3d(4, 4)
+  x.fill(A)
+  print(x)
+  print(x.inverse())
   pass
 
 main()
