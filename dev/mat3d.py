@@ -41,11 +41,11 @@ class Mat3d:
         for j in range(0, self.n):
           self.matrix[i][j] = array2d[i][j]
         
-  def set_num(self, num, row, col):
-    if (row - 1) > self.m or (col - 1) > self.n:
+  def set_num(self, num, r_ind, c_ind):
+    if (r_ind) > self.m or (c_ind) > self.n:
       print("Error: Invalid row and column locations")
     else:
-      self.matrix[row - 1][col - 1] = num
+      self.matrix[r_ind][c_ind] = num
 
   def multipy(self, other):
     if(self.n != other.m):
@@ -62,6 +62,13 @@ class Mat3d:
   
   def inverse(self):
     return np.linalg.inv(self.matrix)
+
+  def transpose(self):
+    tmp_mat = Mat3d()
+    for i in range(self.m):
+      for j in range(self.n):
+        tmp_mat.set_num(self.matrix[i][j], j, i)
+    return tmp_mat
 
   @staticmethod
   def translate(x, y, z):
@@ -95,6 +102,11 @@ def main():
 
   b = Mat3d.translate(2, 3, 4)
   print(b)
+
+  c = Mat3d()
+  c.fill(A)
+  d = c.transpose()
+  print(d)
 
   pass
 
