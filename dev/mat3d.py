@@ -63,15 +63,39 @@ class Mat3d:
   def inverse(self):
     return np.linalg.inv(self.matrix)
 
+  @staticmethod
+  def translate(x, y, z):
+    tmp_mat = Mat3d()
+    tmp_arr = ([[1, 0, 0, x],
+                [0, 1, 0, y],
+                [0, 0, 1, z],
+                [0, 0, 0, 1]])
+    tmp_mat.fill(tmp_arr)
+    return tmp_mat
+
+  @staticmethod
+  def scale(sx, sy, sz):
+    tmp_mat = Mat3d()
+    tmp_arr = ([[sx, 0, 0, 0],
+                [0, sy, 0, 0],
+                [0, 0, sz, 0],
+                [0, 0, 0, 1]])
+    tmp_mat.fill(tmp_arr)
+    return tmp_mat
+
 def main():
   A = ([[6, 1, 1, 3],
-              [4, -2, 5, 1],
-              [2, 8, 7, 6],
-              [3, 1, 9, 7]])
-  x = Mat3d()
-  x.fill(A)
-  print(x)
-  print(x.inverse())
+        [4, -2, 5, 1],
+        [2, 8, 7, 6],
+        [3, 1, 9, 7]])
+  a = Mat3d()
+  a.fill(A)
+  print(a)
+  print(a.inverse())
+
+  b = Mat3d.translate(2, 3, 4)
+  print(b)
+
   pass
 
 main()
