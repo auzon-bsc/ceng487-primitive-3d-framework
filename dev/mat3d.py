@@ -6,15 +6,13 @@
 import numpy as np
 
 class Mat3d:
-  def __init__(self, m = 1, n = 1) -> None:
-      self.m = m
-      self.n = n
-      self.matrix = []
-      for i in range(0, m):
-        row = []
-        for j in range(0, n):
-          row.append(0)
-        self.matrix.append(row)
+  m = 4
+  n = 4
+  def __init__(self) -> None:
+      self.matrix = [[0, 0, 0, 0],
+                     [0, 0, 0, 0],
+                     [0, 0, 0, 0],
+                     [0, 0, 0, 0]]
   
   def __str__(self) -> str:
       s = ""
