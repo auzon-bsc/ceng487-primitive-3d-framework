@@ -6,12 +6,11 @@
 import math
 
 class Vec3d:
-  w = 0
-
-  def __init__(self, x = 0, y = 0, z = 0):
+  def __init__(self, x = 0, y = 0, z = 0, w=0):
     self.x = x
     self.y = y
     self.z = z
+    self.w = w
     
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
