@@ -60,7 +60,7 @@ class Mat3d:
     else:
       self.matrix[r_ind][c_ind] = num
 
-  def multipy(self, other):
+  def multiply(self, other):
     """Multiply this matrix with another one
 
     Args:
@@ -74,7 +74,7 @@ class Mat3d:
     else:
       tmp_m = self.m
       tmp_n = other.n
-      tmp_mat = Mat3d(tmp_m, tmp_n)
+      tmp_mat = Mat3d()
       for i in range(0, tmp_m):
         for j in range(0, tmp_n):
           for k in range(0, self.n):
@@ -82,11 +82,7 @@ class Mat3d:
       return tmp_mat
   
   def inverse(self):
-    """Take inverse of this matrix
-
-    Returns:
-        [type]: [description]
-    """
+    ## RETURN THIS LATER
     return np.linalg.inv(self.matrix) # This'll probably cause bugs
 
   def transpose(self):
