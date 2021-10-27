@@ -1,3 +1,8 @@
+# CENG 487 Assignment1 by
+# Oğuzhan Özer
+# StudentId: 260201039
+# October 2021
+
 # Note:
 # -----
 # This Uses PyOpenGL and PyOpenGL_accelerate packages.  It also uses GLUT for UI.
