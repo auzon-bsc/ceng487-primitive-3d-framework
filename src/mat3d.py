@@ -60,7 +60,7 @@ class Mat3d:
     else:
       self.matrix[r_ind][c_ind] = num
 
-  def multipy(self, other):
+  def multiply(self, other):
     """Multiply this matrix with another one
 
     Args:

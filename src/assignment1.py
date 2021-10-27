@@ -24,7 +24,7 @@ tri_v2 = Vec3d(-1.0, -1.0, 0.0, 1.0)	# Bottom left vertice
 tri_v3 = Vec3d(1.0, -1.0, 0.0, 1.0)	# Bottom right vertice
 tri_vertices = [tri_v1, tri_v2, tri_v3]
 tri = Obj3d(tri_vertices)
-tri_r = Mat3d.rotation("z", 0.01)
+tri_r = Mat3d.rotation("z", 0.5)
 tri.append_transformation(tri_r)
 
 # A general OpenGL initialization function.  Sets all of the initial parameters. 

@@ -158,33 +158,29 @@ class Vec3d:
     return cp
   
   def transform(self, transformation):
+    """Transform this vector. This implementation is a bit edge case and it needs to be reviewed
+
+    Args:
+        transformation (Mat3d): Transformation vector like Translation, Rotation, Scale
+
+    Returns:
+        Vec3d: Transformed vector
+    """
     if transformation.n != 4:
       print("Error: invalid matrix size")
     else:
-      x = 0
-      x += transformation.matrix[0][0] * self.x
-      x += transformation.matrix[0][1] * self.y
-      x += transformation.matrix[0][2] * self.z
-      x += transformation.matrix[0][3] * self.w
+      tmp_mat = Mat3d()
+      tmp_mat.matrix[0] = [self.x]
+      tmp_mat.matrix[1] = [self.y]
+      tmp_mat.matrix[2] = [self.z]
+      tmp_mat.matrix[3] = [self.w]
+      tmp_mat.n = 1
 
-      y = 0
-      y += transformation.matrix[1][0] * self.x
-      y += transformation.matrix[1][1] * self.y
-      y += transformation.matrix[1][2] * self.z
-      y += transformation.matrix[1][3] * self.w
+      tmp_mat = transformation.multiply(tmp_mat)
 
-      z = 0
-      z += transformation.matrix[2][0] * self.x
-      z += transformation.matrix[2][1] * self.y
-      z += transformation.matrix[2][2] * self.z
-      z += transformation.matrix[2][3] * self.w
+      x = tmp_mat.matrix[0][0]
+      y = tmp_mat.matrix[1][0]
+      z = tmp_mat.matrix[2][0]
+      w = tmp_mat.matrix[3][0]
 
-      w = 0
-      w += transformation.matrix[3][0] * self.x
-      w += transformation.matrix[3][1] * self.y
-      w += transformation.matrix[3][2] * self.z
-      w += transformation.matrix[3][3] * self.w
-
-      tmp_vec = Vec3d(x, y, z, w)
-
-      return tmp_vec
+      return Vec3d(x, y, z, w)
