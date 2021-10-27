@@ -82,11 +82,7 @@ class Mat3d:
       return tmp_mat
   
   def inverse(self):
-    """Take inverse of this matrix
-
-    Returns:
-        [type]: [description]
-    """
+    ## RETURN THIS LATER
     return np.linalg.inv(self.matrix) # This'll probably cause bugs
 
   def transpose(self):

@@ -8,19 +8,11 @@ import math
 from mat3d import Mat3d
 
 class Vec3d:
-  m = 4
-  n = 1
-
   def __init__(self, x = 0, y = 0, z = 0, w=0):
     self.x = x
     self.y = y
     self.z = z
     self.w = w
-
-    self.matrix = [[self.x],
-                   [self.y],
-                   [self.z],
-                   [self.w]]
     
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
