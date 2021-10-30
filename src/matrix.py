@@ -19,6 +19,8 @@ class Matrix:
           for number in numbers1D:
             row.append(number)
           matrix.append(row)
+      self.m = m
+      self.n = n
       self.matrix = matrix
   
   def __str__(self) -> str:
@@ -62,7 +64,7 @@ class Matrix:
         c_ind (int): Column index
     """
     if (r_ind) > self.m or (c_ind) > self.n:
-      print("Error: Invalid row and column locations")
+      raise IndexError("Invalid row and column locations")
     else:
       self.matrix[r_ind][c_ind] = num
 
@@ -76,114 +78,102 @@ class Matrix:
         Mat3d: Multiplied matrix
     """
     if(self.n != other.m):
-      print("Error: You cannot multiply %d column matrix with %d row matrix" % (self.n, other.m))
+      raise IndexError("You cannot multiply %d column matrix with %d row matrix" % (self.n, other.m))
     else:
       tmp_m = self.m
       tmp_n = other.n
-      tmp_mat = Matrix()
+      tmp_matrix = []
       for i in range(0, tmp_m):
+        tmp_row = []
         for j in range(0, tmp_n):
+          sum = 0
           for k in range(0, self.n):
-            tmp_mat.matrix[i][j] += self.matrix[i][k] * other.matrix[k][j]
-      return tmp_mat
+            sum += self.matrix[i][k] * other.matrix[k][j]
+          tmp_row.append(sum)
+        tmp_matrix.append(tmp_row)
+      return Matrix(tmp_matrix)
   
-  def inverse(self):
-    ## RETURN THIS LATER
-    return np.linalg.inv(self.matrix) # This'll probably cause bugs
-
   def transpose(self):
     """Generate transpose of a matrix
 
     Returns:
         Mat3d: Transposed matrix
     """
-    tmp_mat = Matrix()
+    tmp_mat = []
     for i in range(self.m):
+      tmp_row = []
       for j in range(self.n):
-        tmp_mat.set_num(self.matrix[i][j], j, i)
-    return tmp_mat
+        tmp_row.append(self.matrix[j][i])
+      tmp_mat.append(tmp_row)
+    return Matrix(tmp_mat)
 
-  @staticmethod
-  def translation(x, y, z):
-    """Calculate translation matrix
+  # @staticmethod
+  # def translation(x, y, z):
+  #   """Calculate translation matrix
 
-    Args:
-        x (float): x coordinate
-        y (float): y coordinate
-        z (float): z coordinate
+  #   Args:
+  #       x (float): x coordinate
+  #       y (float): y coordinate
+  #       z (float): z coordinate
 
-    Returns:
-        Mat3d: Translation matrix
-    """
-    tmp_mat = Matrix()
-    tmp_arr = ([[1, 0, 0, x],
-                [0, 1, 0, y],
-                [0, 0, 1, z],
-                [0, 0, 0, 1]])
-    tmp_mat.fill(tmp_arr)
-    return tmp_mat
+  #   Returns:
+  #       Mat3d: Translation matrix
+  #   """
+  #   return Matrix([[1, 0, 0, x],
+  #                  [0, 1, 0, y],
+  #                  [0, 0, 1, z],
+  #                  [0, 0, 0, 1]])
 
-  @staticmethod
-  def scale(sx, sy, sz):
-    """Calculate a scale matrix
+  # @staticmethod
+  # def scale(sx, sy, sz):
+  #   """Calculate a scale matrix
 
-    Args:
-        sx (float): Scale amount on x axis
-        sy (float): Scale amount on y axis
-        sz (float): Scale amount on z axis
+  #   Args:
+  #       sx (float): Scale amount on x axis
+  #       sy (float): Scale amount on y axis
+  #       sz (float): Scale amount on z axis
 
-    Returns:
-        Mat3d: Scale matrix
-    """
-    tmp_mat = Matrix()
-    tmp_arr = ([[sx, 0, 0, 0],
-                [0, sy, 0, 0],
-                [0, 0, sz, 0],
-                [0, 0, 0, 1]])
-    tmp_mat.fill(tmp_arr)
-    return tmp_mat
+  #   Returns:
+  #       Mat3d: Scale matrix
+  #   """
+  #   return Matrix([[sx, 0, 0, 0],
+  #                  [0, sy, 0, 0],
+  #                  [0, 0, sz, 0],
+  #                  [0, 0, 0, 1]])
 
-  @staticmethod
-  def rotation(axis, degree):
-    """Calculate rotation matrix
+  # @staticmethod
+  # def rotation(axis, degree):
+  #   """Calculate rotation matrix
 
-    Args:
-        axis (str): The axis that rotation matrix will be calculated
-        degree (float): Rotation degree
+  #   Args:
+  #       axis (str): The axis that rotation matrix will be calculated
+  #       degree (float): Rotation degree
 
-    Returns:
-        Mat3d: Rotation matrix
-    """
-    tmp_mat = Matrix()
-    radians = math.radians(degree)
-    c = math.cos(radians)
-    s = math.sin(radians)
+  #   Returns:
+  #       Mat3d: Rotation matrix
+  #   """
+  #   radians = math.radians(degree)
+  #   c = math.cos(radians)
+  #   s = math.sin(radians)
 
-    match axis:
-      case "x":
-        tmp_arr = ([[1, 0, 0, 0],
-                    [0, c, -s, 0],
-                    [0, s, c, 0],
-                    [0, 0, 0, 1]])
-      case "y":
-        tmp_arr = ([[c, 0, s, 0],
-                    [0, 1, 0, 0],
-                    [-s, 0, c, 0],
-                    [0, 0, 0, 1]])
-      case "z":
-        tmp_arr = ([[c, -s, 0, 0],
-                    [s, c, 0, 0],
-                    [0, 0, 1, 0],
-                    [0, 0, 0, 1]])
-      case _:
-        print("Error: Invalid axis")
+  #   match axis:
+  #     case "x":
+  #       tmp_mat = ([[1, 0, 0, 0],
+  #                   [0, c, -s, 0],
+  #                   [0, s, c, 0],
+  #                   [0, 0, 0, 1]])
+  #     case "y":
+  #       tmp_mat = ([[c, 0, s, 0],
+  #                   [0, 1, 0, 0],
+  #                   [-s, 0, c, 0],
+  #                   [0, 0, 0, 1]])
+  #     case "z":
+  #       tmp_mat = ([[c, -s, 0, 0],
+  #                   [s, c, 0, 0],
+  #                   [0, 0, 1, 0],
+  #                   [0, 0, 0, 1]])
+  #     case _:
+  #       raise ValueError("Invalid axis")
     
-    tmp_mat.fill(tmp_arr)
-    return tmp_mat
+  #   return Matrix(tmp_mat)
 
-def main():
-    l1 = [[1,2,3],[4,5,6],[7,8,9]]
-    m1 = Matrix(l1)
-    print(m1)
-
-main()
