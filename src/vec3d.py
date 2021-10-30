@@ -6,26 +6,48 @@
 import math
 
 from mat3d import Mat3d
+from matrix import Matrix
 
 class Vec3d:
   def __init__(self, x = 0, y = 0, z = 0, w=0):
-    self.x = x
-    self.y = y
-    self.z = z
-    self.w = w
+    tmp_arr = [[x],
+               [y],
+               [z],
+               [w]]
+    self.matrix = Matrix(tmp_arr)
 
   @property
   def x(self):
-    pass
+    return self.matrix.matrix_arr[0][0]
 
   @property
-  def x(self):
-    pass
+  def y(self):
+    return self.matrix.matrix_arr[1][0]
 
   @property
-  def x(self):
-    pass
-    
+  def z(self):
+    return self.matrix.matrix_arr[2][0]
+
+  @property
+  def w(self):
+    return self.matrix.matrix_arr[3][0]
+
+  @x.setter
+  def x(self, val):
+    self.matrix.matrix_arr[0][0] = val
+
+  @y.setter
+  def y(self, val):
+    self.matrix.matrix_arr[1][0] = val
+
+  @z.setter
+  def z(self, val):
+    self.matrix.matrix_arr[2][0] = val
+
+  @w.setter
+  def w(self, val):
+    self.matrix.matrix_arr[3][0] = val
+  
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
       return str
@@ -143,8 +165,7 @@ class Vec3d:
     proj_magn = dp / other.magnitude()
     temp_vec = other.basis()
     temp_vec.scale(proj_magn)
-    proj = temp_vec
-    return proj
+    return temp_vec
 
   def cross_product(self, other):
     """Calculate cross product of this vector with another one
@@ -157,34 +178,6 @@ class Vec3d:
     """
     x = self.y * other.z - self.z * other.y
     y = self.z * other.x - self.x * other.z
-    z = self.x * other.y - self.y - other.x
+    z = self.x * other.y - self.y * other.x
     cp = Vec3d(x, y, z)
     return cp
-  
-  def transform(self, transformation):
-    """Transform this vector. This implementation is a bit edge case and it needs to be reviewed
-
-    Args:
-        transformation (Mat3d): Transformation vector like Translation, Rotation, Scale
-
-    Returns:
-        Vec3d: Transformed vector
-    """
-    if transformation.n != 4:
-      print("Error: invalid matrix size")
-    else:
-      tmp_mat = Mat3d()
-      tmp_mat.matrix[0] = [self.x]
-      tmp_mat.matrix[1] = [self.y]
-      tmp_mat.matrix[2] = [self.z]
-      tmp_mat.matrix[3] = [self.w]
-      tmp_mat.n = 1
-
-      tmp_mat = transformation.multiply(tmp_mat)
-
-      x = tmp_mat.matrix[0][0]
-      y = tmp_mat.matrix[1][0]
-      z = tmp_mat.matrix[2][0]
-      w = tmp_mat.matrix[3][0]
-
-      return Vec3d(x, y, z, w)
