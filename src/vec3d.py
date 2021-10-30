@@ -1,4 +1,4 @@
-# CENG 487 Assignment1 by
+# CENG 487 Assignment by
 # Oğuzhan Özer
 # StudentId: 260201039
 # October 2021
@@ -13,6 +13,18 @@ class Vec3d:
     self.y = y
     self.z = z
     self.w = w
+
+  @property
+  def x(self):
+    pass
+
+  @property
+  def x(self):
+    pass
+
+  @property
+  def x(self):
+    pass
     
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
