@@ -3,6 +3,7 @@ import unittest
 
 from matrix import Matrix
 from mat3d import Mat3d
+from vec3d import Vec3d
 
 class TestMatrix(unittest.TestCase):
 
@@ -95,6 +96,76 @@ class TestMat3d(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             Mat3d.rotation("w", 90)
+
+class TestVec3d(unittest.TestCase):
+
+    def test_init(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        self.assertEqual(v1.matrix.matrix_arr, [[2],[3],[4],[0]])
+
+    def test_add(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        v2 = Vec3d(4, 3, 2, 0)
+        v1.add(v2)
+        self.assertEqual(v1.matrix.matrix_arr, [[6],[6],[6],[0]])
+
+    def test_substract(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        v3 = Vec3d(6, 6, 6, 0)
+        v3.substract(v1)
+        self.assertEqual(v3.matrix.matrix_arr, [[4],[3],[2],[0]])
+
+    def test_clone(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        v2 = v1.clone()
+        self.assertEqual(v1.matrix.matrix_arr, v2.matrix.matrix_arr)
+
+    def test_negative(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        v2 = Vec3d(-2, -3, -4, 0)
+        v1.negative()
+        self.assertEqual(v1.matrix.matrix_arr, v2.matrix.matrix_arr)
+
+    def test_scale(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        v2 = Vec3d(6, 9, 12, 0)
+        v1.scale(3)
+        self.assertEqual(v1.matrix.matrix_arr, v2.matrix.matrix_arr)
+
+    def test_dot_product(self):
+        v1 = Vec3d(2, 3, 4, 0)
+        v2 = Vec3d(4, 2, 3, 0)
+        res = v1.dot_product(v2)
+        self.assertEqual(res, 26)
+
+    def test_magnitude(self):
+        v1 = Vec3d(2, 3, 6, 0)
+        res = v1.magnitude()
+        self.assertEqual(res, 7)
+
+    def test_angle(self):
+        v1 = Vec3d(3, 6, 1, 0)
+        v2 = Vec3d(-5, -9, 4, 0)
+        res = v1.angle(v2)
+        self.assertAlmostEqual(res, 150, 0)
+
+    def test_basis(self):
+        v1 = Vec3d(2, 3, 6, 0)
+        v2 = v1.basis()
+        mag = v1.magnitude()
+        v3 = Vec3d(2/mag, 3/mag, 6/mag, 0)
+        self.assertEqual(v2.matrix.matrix_arr, v3.matrix.matrix_arr)
+    
+    def test_project(self):
+        v1 = Vec3d(2, 3, 6, 0)
+        v2 = v1.project(Vec3d(5, 0, 0, 0))
+        self.assertEqual(v2.matrix.matrix_arr, [[2],[0],[0],[0]])
+
+    def test_cross_product(self):
+        v1 = Vec3d(1, 2, 3, 0)
+        v2 = Vec3d(4, 5, 6, 0)
+        res = v1.cross_product(v2)
+        self.assertEqual(res.matrix.matrix_arr, [[-3],[6],[-3],[0]])
 
 if __name__ == '__main__':
     unittest.main()
