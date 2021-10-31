@@ -24,28 +24,19 @@ ESCAPE = '\033'
 window = 0
 
 # Triangle obj
-tri_v1 = Vec3d(0.0, 1.0, 0.0, 1.0)	# Top vertice
-tri_v2 = Vec3d(-1.0, -1.0, 0.0, 1.0)	# Bottom left vertice
-tri_v3 = Vec3d(1.0, -1.0, 0.0, 1.0)	# Bottom right vertice
+tri_v1 = [0.0, 1.0, 0.0, 1.0]	# Top vertice
+tri_v2 = [-1.0, -1.0, 0.0, 1.0]	# Bottom left vertice
+tri_v3 = [1.0, -1.0, 0.0, 1.0]	# Bottom right vertice
 tri_ver = [tri_v1, tri_v2, tri_v3]	# Vertice array
 tri = Obj3d(tri_ver)	# Triangle object
 
-tri_t1 = Mat3d.translation(1.0, 1.0, 0.0) # Translation for center
-rot = Mat3d.rotation("z", 0.1)	# Rotation about 0.1 degree
-tri_t2 = Mat3d.translation(-1, -1, 0) # Translation for old positon
-
 # Square obj
-sq_v1 = Vec3d(-1.0, 1.0, 0.0, 1.0)		# Top left
-sq_v2 = Vec3d(1.0, 1.0, 0.0, 1.0)			# Top right
-sq_v3 = Vec3d(1.0, -1.0, 0.0, 1.0)		# Bottom right
-sq_v4 = Vec3d(-1.0, -1.0, 0.0, 1.0)		# Bottom left
-
+sq_v1 = [-1.0, 1.0, 0.0, 1.0]		# Top left
+sq_v2 = [1.0, 1.0, 0.0, 1.0]			# Top right
+sq_v3 = [1.0, -1.0, 0.0, 1.0]		# Bottom right
+sq_v4 = [-1.0, -1.0, 0.0, 1.0]		# Bottom left
 sq_ver = [sq_v1, sq_v2, sq_v3, sq_v4]		# Vertice array
 sq = Obj3d(sq_ver)		# Square object
-
-sq_t1 = Mat3d.translation(-1.0, -1.0, 0.0)		# Translation for center
-sq_t2 = Mat3d.translation(1.0, 1.0, 0.0)			# Translation for old position
-
 
 # A general OpenGL initialization function.  Sets all of the initial parameters. 
 def InitGL(Width, Height):				# We call this right after our OpenGL window is created.
@@ -82,36 +73,32 @@ def DrawGLScene():
 	# Move Left 1.5 units and into the screen 6.0 units.
 	glTranslatef(-1.5, 0.0, -6.0)
 
+	tri.rotate("z", Vec3d(1, 1, 0, 1), 0.1)
+	tri_ver_arr = tri.transform()
 	# Since we have smooth color mode on, this will be great for the Phish Heads :-).
 	# Draw a triangle
 	glBegin(GL_POLYGON)                 # Start drawing a polygon
 	glColor3f(1.0, 0.0, 0.0)            # Red
-	glVertex3f(tri.vertices[0].x, tri.vertices[0].y, tri.vertices[0].z)           # Top
+	glVertex3f(tri_ver_arr[0].x, tri_ver_arr[0].y, tri_ver_arr[0].z)           # Top
 	glColor3f(0.0, 1.0, 0.0)            # Green
-	glVertex3f(tri.vertices[1].x, tri.vertices[1].y, tri.vertices[1].z)          # Bottom Right
+	glVertex3f(tri_ver_arr[1].x, tri_ver_arr[1].y, tri_ver_arr[1].z)          # Bottom Right
 	glColor3f(0.0, 0.0, 1.0)            # Blue
-	glVertex3f(tri.vertices[2].x, tri.vertices[2].y, tri.vertices[2].z)         # Bottom Left
+	glVertex3f(tri_ver_arr[2].x, tri_ver_arr[2].y, tri_ver_arr[2].z)         # Bottom Left
 	glEnd()                             # We are done with the polygon
 	
 	# Move Right 3.0 units.
 	glTranslatef(3.0, 0.0, 0.0)
-
+	
+	sq.rotate("z", Vec3d(-1, -1, 1, 1), 0.1)
+	sq_ver_arr = sq.transform()
 	# Draw a square (quadrilateral)
 	glColor3f(0.3, 0.5, 1.0)            # Bluish shade
 	glBegin(GL_QUADS)                   # Start drawing a 4 sided polygon
-	glVertex3f(sq.vertices[0].x, sq.vertices[0].y, sq.vertices[0].z)          # Top Left
-	glVertex3f(sq.vertices[1].x, sq.vertices[1].y, sq.vertices[1].z)           # Top Right
-	glVertex3f(sq.vertices[2].x, sq.vertices[2].y, sq.vertices[2].z)          # Bottom Right
-	glVertex3f(sq.vertices[3].x, sq.vertices[3].y, sq.vertices[3].z)         # Bottom Left
+	glVertex3f(sq_ver_arr[0].x, sq_ver_arr[0].y, sq_ver_arr[0].z)          # Top Left
+	glVertex3f(sq_ver_arr[1].x, sq_ver_arr[1].y, sq_ver_arr[1].z)           # Top Right
+	glVertex3f(sq_ver_arr[2].x, sq_ver_arr[2].y, sq_ver_arr[2].z)          # Bottom Right
+	glVertex3f(sq_ver_arr[3].x, sq_ver_arr[3].y, sq_ver_arr[3].z)         # Bottom Left
 	glEnd()                             # We are done with the polygon
-
-	tri.transform(tri_t1)		# Center the triangle
-	tri.transform(rot)			# Rotate
-	tri.transform(tri_t2)		# Return to original position
-
-	sq.transform(sq_t1)		# Center the square
-	sq.transform(rot)			# Rotate
-	sq.transform(sq_t2)		# Return to original position
 
 	#  since this is double buffered, swap the buffers to display what just got drawn. 
 	glutSwapBuffers()
