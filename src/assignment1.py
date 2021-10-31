@@ -14,7 +14,6 @@ import sys
 
 from obj3d import Obj3d
 from vec3d import Vec3d
-from mat3d import Mat3d
 
 # Some api in the chain is translating the keystrokes to this octal string
 # so instead of saying: ESCAPE = 27, we use the following.
