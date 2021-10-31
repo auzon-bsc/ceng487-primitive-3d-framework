@@ -15,6 +15,18 @@ class Mat3d:
       return self.matrix
 
   @staticmethod
+  def identity():
+    """Create a 4x4 identity matrix
+
+    Returns:
+        Mat3d: 4x4 identity matrix
+    """
+    return Mat3d([[1, 0, 0, 0],
+                  [0, 1, 0, 0],
+                  [0, 0, 1, 0],
+                  [0, 0, 0, 1]])
+
+  @staticmethod
   def translation(x, y, z):
     """Calculate translation matrix
 

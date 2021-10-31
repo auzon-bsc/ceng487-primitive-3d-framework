@@ -82,7 +82,8 @@ class Vec3d:
     new_x = self.x
     new_y = self.y
     new_z = self.z
-    new_vec3d = Vec3d(new_x, new_y, new_z)
+    new_w = self.w
+    new_vec3d = Vec3d(new_x, new_y, new_z, new_w)
     return new_vec3d
 
   def negative(self):
