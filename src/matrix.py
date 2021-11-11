@@ -75,7 +75,7 @@ class Matrix:
         other (Mat3d): The matrix that wanted to be multiplied with this matrix
 
     Returns:
-        Mat3d: Multiplied matrix
+        Matrix: Multiplied matrix
     """
     if(self.n != other.m):
       raise IndexError("You cannot multiply %d column matrix with %d row matrix" % (self.n, other.m))

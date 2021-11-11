@@ -181,3 +181,11 @@ class Vec3d:
     z = self.x * other.y - self.y * other.x
     cp = Vec3d(x, y, z)
     return cp
+
+  def transform(self, tra_mat: Mat3d):
+    """Generate new transformed vertices
+
+    Args:
+        tra_mat (Mat3d): 4x4 Transformation matrix
+    """
+    tra_mat.multiply(self.matrix)
