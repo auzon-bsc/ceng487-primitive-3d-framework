@@ -10,11 +10,10 @@ from matrix import Matrix
 
 class Vec3d:
   def __init__(self, x = 0, y = 0, z = 0, w=0):
-    tmp_arr = [[x],
-               [y],
-               [z],
-               [w]]
-    self.matrix = Matrix(tmp_arr)
+    self.matrix = Matrix([[x],
+                          [y],
+                          [z],
+                          [w]])
 
   @property
   def x(self):
