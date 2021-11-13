@@ -5,10 +5,10 @@
 
 from logging import error
 import math
-from sys import api_version
 from mat3d import Mat3d
 from enum import Enum
 import copy
+from poly import Poly
 from vec3d import Vec3d
 
 class TransformationOrder(Enum):
@@ -22,16 +22,15 @@ class Obj3d:
   """Create and manipulate 3D objects
 
     Args:
-        point_arr (list): Point array
+        poly_arr (list): Polygon array
     """
-  def __init__(self, poly_arr) -> None:
-    
-    self.transformation = Mat3d.identity()
-    self.translation = Mat3d.identity()
-    self.rotation = Mat3d.identity()
-    self.scaling = Mat3d.identity()
-    self.poly_arr = copy.deepcopy(poly_arr)
-    self.stack = [Mat3d.identity()]
+  def __init__(self, poly_arr: list[Poly]) -> None:
+    self.poly_arr = poly_arr    # Poly array contains poly objects, poly object contains vertex_arr which contains vertices
+    self.transformation = Mat3d.identity()    # Transformation matrix to multiply with vertices
+    self.translation = Mat3d.identity()   # Translation matrix of this object
+    self.rotation = Mat3d.identity()    # Rotation matrix of this object
+    self.scaling = Mat3d.identity()   # Scaling matrix of this object
+    self.stack = [Mat3d.identity()]   # Stack for saving previous transformation matrices
 
   def push_transformation(self):
     """Push current transformation to the stack
@@ -115,16 +114,18 @@ class Obj3d:
           raise error("There is a problem with TransformationOrder ENUM")
 
     tmp_ver_arr = []
-    for i in range(len(self.poly_arr)):
-      for j in range(len(self.poly_arr[i])):
+    for poly in self.poly_arr:
+      tmp_ver_arr += poly.transform(self.transformation)
+    # for i in range(len(self.poly_arr)):
+    #   for j in range(len(self.poly_arr[i])):
 
-        tmp_mat = self.transformation.matrix.multiply(self.poly_arr[i][j].matrix)
-        tmp_x = tmp_mat.matrix_arr[0][0]
-        tmp_y = tmp_mat.matrix_arr[1][0]
-        tmp_z = tmp_mat.matrix_arr[2][0]
-        tmp_w = tmp_mat.matrix_arr[3][0]
-        tmp_ver = Vec3d(tmp_x, tmp_y, tmp_z, tmp_w)
-        tmp_ver_arr.append(tmp_ver)
+    #     tmp_mat = self.transformation.matrix.multiply(self.poly_arr[i][j].matrix)
+    #     tmp_x = tmp_mat.matrix_arr[0][0]
+    #     tmp_y = tmp_mat.matrix_arr[1][0]
+    #     tmp_z = tmp_mat.matrix_arr[2][0]
+    #     tmp_w = tmp_mat.matrix_arr[3][0]
+    #     tmp_ver = Vec3d(tmp_x, tmp_y, tmp_z, tmp_w)
+    #     tmp_ver_arr.append(tmp_ver)
 
     return tmp_ver_arr
 
@@ -212,7 +213,7 @@ class Obj3d:
         tmp_arr.append(point_arr[i][j+1])
         tmp_arr.append(point_arr[i+1][j+1])
         tmp_arr.append(point_arr[i+1][j])
-        poly_arr.append(tmp_arr)
+        poly_arr.append(Poly(tmp_arr))
 
     s1 = Obj3d(copy.deepcopy(poly_arr))   # Surface 1
     s2 = Obj3d(copy.deepcopy(poly_arr))
@@ -236,14 +237,6 @@ class Obj3d:
     
     s6.rotate("x", Vec3d(0, 0, 0), -90)
     s6.translate(0, -a/2, 0)
-    
-    
-    # arr1 = s1.transform()
-    # arr2 = s2.transform()
-    # arr3 = s3.transform()
-    # arr4 = s4.transform()
-    # arr5 = s5.transform()
-    # arr6 = s6.transform()
 
     return Obj3d(poly_arr)
 

@@ -165,3 +165,14 @@ class Mat3d:
         raise ValueError("Invalid axis")
     
     return Mat3d(tmp_mat)
+
+  def multiply(self, other: Matrix):
+    """Multiply this 4x4 matrix with 4x? any matrix
+
+    Args:
+        other (Matrix): A matrix which has 4 rows and any arbitrary columns
+
+    Returns:
+        Mat3d: Multiplied 4x? matrix
+    """
+    return self.matrix.multiply(other)
