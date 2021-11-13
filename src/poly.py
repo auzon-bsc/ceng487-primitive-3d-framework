@@ -34,14 +34,18 @@ class Poly:
     return Poly(tmp_arr)
 
   def transform(self, tra_mat: Mat3d):
-    """Generate new transformed vertices
+    """Generate transformed vertices
 
     Args:
-        tra_mat (Mat3d): 4x4 Transformation matrix
+        tra_mat (Mat3d): Transformation matrix
+
+    Returns:
+        list[Vec3d]: Transformed vertex array
     """
     vertex: Vec3d
-    tmp_arr: list[Vec3d]
+    tmp_arr: list[Vec3d] = []
     for vertex in self.vertex_arr:
-      tmp_ver = tra_mat.multiply(vertex.matrix)
-      tmp_arr.append(tmp_ver)
+      tmp_mat = tra_mat.multiply(vertex.matrix)
+      tmp_vec = Vec3d(tmp_mat.matrix_arr[0][0], tmp_mat.matrix_arr[1][0], tmp_mat.matrix_arr[2][0], tmp_mat.matrix_arr[3][0])
+      tmp_arr.append(tmp_vec)
     return tmp_arr
