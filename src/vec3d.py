@@ -9,11 +9,11 @@ from mat3d import Mat3d
 from matrix import Matrix
 
 class Vec3d:
-  def __init__(self, x = 0, y = 0, z = 0, w=0):
-    self.matrix = Matrix([[x],
-                          [y],
-                          [z],
-                          [w]])
+  def __init__(self, coordinate: list[float]):
+    self.matrix = Matrix([[coordinate[0]],
+                          [coordinate[1]],
+                          [coordinate[2]],
+                          [1.0]])
 
   @property
   def x(self):

@@ -64,7 +64,7 @@ def parse_obj(lines: list[str]):
             # line represents name
             case "o":
                 name = line[2:-1]
-                
+
                 # print(f"Name of the object: '{name}'")
 
             # line represents single vertex
@@ -92,7 +92,7 @@ def main():
     vertices, faces = parse_obj(lines)
     
     # create object from vertices and faces lists
-    # obj = Obj3d(vertices, faces)
+    obj = Obj3d(vertices, faces)
     
 
 main()
