@@ -47,6 +47,10 @@ class Vec3d:
   def w(self, val):
     self.matrix.matrix_arr[3][0] = val
   
+  @property
+  def tuple(self):
+    return (self.x, self.y, self.z)
+
   def __str__(self):
       str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
       return str
