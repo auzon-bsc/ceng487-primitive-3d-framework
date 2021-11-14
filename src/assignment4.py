@@ -10,6 +10,7 @@ import glhelper
 
 from obj3d import Obj3d
 
+
 def main():
     # get filename
     filename = parser.parse_cl()
@@ -23,11 +24,10 @@ def main():
     # create object from vertices and faces lists
     obj3d = Obj3d(vertices, faces)
 
-    print(vertices, faces)
+    # print(vertices, faces)
 
-    glhelper.AddObject(obj3d)
+    glhelper.addobj(obj3d)
     glhelper.start()
-
 
 
 main()
