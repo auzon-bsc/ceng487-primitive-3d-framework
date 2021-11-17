@@ -3,10 +3,6 @@
 # StudentId: 260201039
 # October 2021
 
-import numpy as np
-import math
-
-
 class Matrix:
     def __init__(self, numbers2D: list) -> None:
         m = len(numbers2D)

@@ -6,8 +6,6 @@
 from logging import error
 import math
 
-from OpenGL.error import Error
-
 from mat3d import Mat3d
 from matrix import Matrix
 

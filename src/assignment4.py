@@ -24,8 +24,7 @@ def main():
     # create object from vertices and faces lists
     obj3d = Obj3d(vertices, faces)
 
-    # print(vertices, faces)
-
+    # add object to glhelper class and start drawing
     glhelper.addobj(obj3d)
     glhelper.start()
 

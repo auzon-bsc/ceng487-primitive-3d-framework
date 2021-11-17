@@ -10,7 +10,6 @@ import sys
 def parse_cl():
     # total arguments
     n = len(sys.argv)
-    print("Total arguments passed:", n)
 
     # if total number of arguments is wrong
     if n != 2:
@@ -19,7 +18,6 @@ def parse_cl():
 
     # assign filename
     filename = sys.argv[1]
-    print(f"Filename: {filename}")
 
     # return filename
     return filename
@@ -48,9 +46,6 @@ def parse_obj(lines: list[str]):
     for line in lines:
         # split lines by whitespace
         splitted_line = line.split()
-
-        # print(splitted_line)
-
         # pop first char from the line
         try:
             first_char = splitted_line.pop(0)
@@ -63,9 +58,6 @@ def parse_obj(lines: list[str]):
             # line represents name
             case "o":
                 name = line[2:-1]
-
-                # print(f"Name of the object: '{name}'")
-
             # line represents single vertex
             case "v":
                 # convert each string in the line to float list and add that list to vertex list
@@ -75,8 +67,5 @@ def parse_obj(lines: list[str]):
             case "f":
                 # convert each string in the line to int list and add that list to face list
                 faces.append([int(x)-1 for x in splitted_line])
-
-    # print(f"vertices: {vertices}")
-    # print(f"faces: {faces}")
 
     return vertices, faces

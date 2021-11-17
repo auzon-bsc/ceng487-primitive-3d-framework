@@ -18,6 +18,10 @@ from vec3d import Vec3d
 
 # Number of the glut window.
 window = 0
+# window width
+ww = 640
+# windows height
+wh = 480
 
 # rotation angle and rotation speed
 # rotation speed determines the rotation angle
@@ -69,6 +73,7 @@ def InitGL(Width, Height):
 
 
 def ReSizeGLScene(Width, Height):
+    global ww, wh
     """The function called when our window is resized (which shouldn't happen if you enable fullscreen, below)
 
     Args:
@@ -78,6 +83,8 @@ def ReSizeGLScene(Width, Height):
     if Height == 0:  # Prevent A Divide By Zero If The Window Is Too Small
         Height = 1
 
+    ww = Width
+    wh = Height
     # Reset The Current Viewport And Perspective Transformation
     glViewport(0, 0, Width, Height)
     glMatrixMode(GL_PROJECTION)
@@ -179,8 +186,17 @@ def drawlines(vertices: list[Vec3d], face: list[int]):
 
 
 def rendertext(text: str):
+    """Renders the text to left bottom corner of the window
+
+    Args:
+        text (str): Text to be rendered
+    """
+    # Color red for text
     glColor3f(1, 0, 0.3)
-    glRasterPos3f(-2, -1.5, 6)
+    # Position text
+    glLoadIdentity()
+    glRasterPos3f(-0.55, -0.41, -1)
+    # Print each character
     for c in text:
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(c))
 
@@ -206,7 +222,9 @@ def keyPressed(key, x, y):
             # leave opengl
             glutLeaveMainLoop()
             return
+        # 1
         case b'1':
+            # Select object 1
             oindex = 0
             vertices, faces = recalculate()
         # +
@@ -221,10 +239,12 @@ def keyPressed(key, x, y):
             vertices, faces = recalculate()
         # Left arrow key
         case 100:
+            # Rotate counter clockwise
             objects[oindex].rotate("y", Vec3d([0, 0, 0, 1]), rangle)
             vertices, faces = recalculate()
         # Right arrow key
         case 102:
+            # Rotate clockwise
             objects[oindex].rotate("y", Vec3d([0, 0, 0, 1]), -rangle)
             vertices, faces = recalculate()
         case _:
@@ -319,6 +339,7 @@ def start():
     """Driver function for this module
     """
     global window
+
     glutInit(sys.argv)
 
     # Select type of Display mode:
@@ -329,7 +350,7 @@ def start():
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
 
     # get a 640 x 480 window
-    glutInitWindowSize(640, 480)
+    glutInitWindowSize(ww, wh)
 
     # the window starts at the upper left corner of the screen
     glutInitWindowPosition(0, 0)
@@ -360,7 +381,7 @@ def start():
     glutSpecialFunc(keyPressed)
 
     # Initialize our window.
-    InitGL(640, 480)
+    InitGL(ww, wh)
 
     # Start Event Processing Engine
     glutMainLoop()
