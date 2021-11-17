@@ -173,6 +173,6 @@ class Mat3d:
         other (Matrix): A matrix which has 4 rows and any arbitrary columns
 
     Returns:
-        Mat3d: Multiplied 4x? matrix
+        Matrix: Multiplied 4x? matrix
     """
     return self.matrix.multiply(other)
