@@ -14,7 +14,8 @@ def parse_cl():
     # if total number of arguments is wrong
     if n != 2:
         raise ValueError(
-            "This program only takes 1 additional argument, which is the object file")
+            "This program only takes 1 additional argument, which is the object file"
+        )
 
     # assign filename
     filename = sys.argv[1]
@@ -37,7 +38,7 @@ def parse_lines(filename: str):
     return lines
 
 
-def parse_obj(lines: list[str]):
+def parse_obj(lines: "list[str]"):
     # vertex and face lists to be filled
     vertices = []
     faces = []
@@ -54,18 +55,17 @@ def parse_obj(lines: list[str]):
         except:
             continue
         # look the first char
-        match first_char:
-            # line represents name
-            case "o":
-                name = line[2:-1]
-            # line represents single vertex
-            case "v":
-                # convert each string in the line to float list and add that list to vertex list
-                vertices.append([float(x) for x in splitted_line])
-                [vertex.append(1.0) for vertex in vertices]
-            # line represents single face
-            case "f":
-                # convert each string in the line to int list and add that list to face list
-                faces.append([int(x)-1 for x in splitted_line])
+        # line represents name
+        if first_char == "o":
+            name = line[2:-1]
+        # line represents single vertex
+        elif first_char == "v":
+            # convert each string in the line to float list and add that list to vertex list
+            vertices.append([float(x) for x in splitted_line])
+            [vertex.append(1.0) for vertex in vertices]
+        # line represents single face
+        elif first_char == "f":
+            # convert each string in the line to int list and add that list to face list
+            faces.append([int(x) - 1 for x in splitted_line])
 
     return vertices, faces

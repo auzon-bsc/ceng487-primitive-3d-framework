@@ -4,22 +4,20 @@
 # November 2021
 # Runs in Python 3.10.0
 
-from matrix import Matrix
-import parser
 import glhelper
-
+import objparser as op
 from obj3d import Obj3d
 
 
 def main():
     # get filename
-    filename = parser.parse_cl()
+    filename = op.parse_cl()
 
     # parse file to lines
-    lines = parser.parse_lines(filename)
+    lines = op.parse_lines(filename)
 
     # parse object from the lines
-    vertices, faces = parser.parse_obj(lines)
+    vertices, faces = op.parse_obj(lines)
 
     # create object from vertices and faces lists
     obj3d = Obj3d(vertices, faces)
@@ -27,6 +25,8 @@ def main():
     # add object to glhelper class and start drawing
     glhelper.addobj(obj3d)
     glhelper.start()
+
+    print("Hit ESC key to quit.")
 
 
 main()
