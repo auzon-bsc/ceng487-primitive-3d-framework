@@ -28,7 +28,7 @@ wh = 480
 rangle = 5
 
 # objects list to store Obj3d instances
-objects: list[Obj3d] = []
+objects = []
 # object index determines which object to be drawn
 oindex = 0
 # subdivision number determines subdivision amount for the objects
@@ -122,11 +122,11 @@ def recalculate():
     Returns:
         tuple[list[Vec3d], list[list[int]]]: vertices, faces
     """
-    return subdivision(objects[oindex].transform(),
-                       objects[oindex].getfaces(), sdnum)
+    return subdivision(objects[oindex].transform(), objects[oindex].getfaces(),
+                       sdnum)
 
 
-def drawobj(vertices: list[Vec3d], faces: list[list[int]]):
+def drawobj(vertices, faces):
     """Draw quads and lines for each face
 
     Args:
@@ -138,7 +138,7 @@ def drawobj(vertices: list[Vec3d], faces: list[list[int]]):
         drawlines(vertices, face)
 
 
-def drawquads(vertices: list[Vec3d], face: list[int]):
+def drawquads(vertices, face):
     """Draw quads for given vertices and face
 
     Args:
@@ -152,14 +152,12 @@ def drawquads(vertices: list[Vec3d], face: list[int]):
         # determine color with coordinates
         glColor3f(1, 1, 1)
         # send a vertex of the face to opengl
-        glVertex3f(vertices[vi].x,
-                   vertices[vi].y,
-                   vertices[vi].z)
+        glVertex3f(vertices[vi].x, vertices[vi].y, vertices[vi].z)
     # end drawing quads
     glEnd()
 
 
-def drawlines(vertices: list[Vec3d], face: list[int]):
+def drawlines(vertices, face):
     """Draw lines for given vertices and face
 
     Args:
@@ -172,15 +170,13 @@ def drawlines(vertices: list[Vec3d], face: list[int]):
         # set line color to black
         glColor3f(0, 0, 0)
         # starting point of the line
-        glVertex3f(
-            vertices[face[i-1]].x,
-            vertices[face[i-1]].y,
-            vertices[face[i-1]].z+0.01)    # +0.01 for better visibility for lines
+        glVertex3f(vertices[face[i - 1]].x, vertices[face[i - 1]].y,
+                   vertices[face[i - 1]].z +
+                   0.01)  # +0.01 for better visibility for lines
         # ending point of the line
-        glVertex3f(
-            vertices[face[i]].x,
-            vertices[face[i]].y,
-            vertices[face[i]].z+0.01)    # +0.01 for better visibility for lines
+        glVertex3f(vertices[face[i]].x, vertices[face[i]].y,
+                   vertices[face[i]].z +
+                   0.01)  # +0.01 for better visibility for lines
     # end drawing lines
     glEnd()
 
@@ -216,42 +212,45 @@ def keyPressed(key, x, y):
     global vertices
     global faces
 
-    match key:
-        # ESC
-        case b'\x1b':
-            # leave opengl
-            glutLeaveMainLoop()
-            return
-        # 1
-        case b'1':
-            # Select object 1
-            oindex = 0
-            vertices, faces = recalculate()
-        # +
-        case b'+':
-            # increase subdivision number
-            sdnum += 1
-            vertices, faces = recalculate()
-        # -
-        case b'-':
-            # decrease subdivision number
-            sdnum -= 1
-            vertices, faces = recalculate()
-        # Left arrow key
-        case 100:
-            # Rotate counter clockwise
-            objects[oindex].rotate("y", Vec3d([0, 0, 0, 1]), rangle)
-            vertices, faces = recalculate()
-        # Right arrow key
-        case 102:
-            # Rotate clockwise
-            objects[oindex].rotate("y", Vec3d([0, 0, 0, 1]), -rangle)
-            vertices, faces = recalculate()
-        case _:
-            print(f"Pressed key doesn't do anything!(value is: {key})")
+    # ESC
+    if key == b'\x1b':
+        # leave opengl
+        glutLeaveMainLoop()
+        return
+    # 1
+    elif key == b'1':
+        # Select object 1
+        oindex = 0
+        vertices, faces = recalculate()
+        return
+    # +
+    elif key == b'+':
+        # increase subdivision number
+        sdnum += 1
+        vertices, faces = recalculate()
+        return
+    # -
+    elif key == b'-':
+        # decrease subdivision number
+        sdnum -= 1
+        vertices, faces = recalculate()
+        return
+    # Left arrow key
+    elif key == 100:
+        # Rotate counter clockwise
+        objects[oindex].rotate("y", Vec3d([0, 0, 0, 1]), rangle)
+        vertices, faces = recalculate()
+        return
+    # Right arrow key
+    elif key == 102:
+        # Rotate clockwise
+        objects[oindex].rotate("y", Vec3d([0, 0, 0, 1]), -rangle)
+        vertices, faces = recalculate()
+    else:
+        print(f"Pressed key doesn't do anything!(value is: {key})")
 
 
-def subdivision(vertices: list[Vec3d], faces: list[list[int]], sdnum: int):
+def subdivision(vertices, faces, sdnum):
     """Calculate the subdivided vertices and faces with respect to subdivision number
 
     Args:
@@ -267,7 +266,7 @@ def subdivision(vertices: list[Vec3d], faces: list[list[int]], sdnum: int):
     sdvertices = copy_vertices(vertices)
 
     # repeat the division algorithm sdnum times
-    for sdstep in range(sdnum):    # subdivisionstep
+    for sdstep in range(sdnum):  # subdivisionstep
 
         # loop all faces to calculate all subdivision vertices and faces
         for facestep in range(len(sdfaces)):
@@ -276,7 +275,7 @@ def subdivision(vertices: list[Vec3d], faces: list[list[int]], sdnum: int):
             sdface = sdfaces.pop(0)
 
             # vertices size is required for indexing newly added vertices
-            vs = len(sdvertices)      # size of the vertices list
+            vs = len(sdvertices)  # size of the vertices list
 
             # initialize a vertex for midvertex of the face
             midvertex = Vec3d([0, 0, 0, 1])
@@ -286,26 +285,26 @@ def subdivision(vertices: list[Vec3d], faces: list[list[int]], sdnum: int):
                 midvertex += sdvertices[sdface[vi]]
                 # calculate the point between two vertex
                 # sum the vertices and divide the summation by 2
-                edgevertex = sdvertices[sdface[vi-1]] + sdvertices[sdface[vi]]
+                edgevertex = sdvertices[sdface[vi -
+                                               1]] + sdvertices[sdface[vi]]
                 edgevertex.scale(0.5)
                 # since this is a new vertex add it to the vertex list
                 sdvertices.append(edgevertex)
             # to find middle vertex
             # divide the sum of the all vertexes in the face to number of face
-            midvertex.scale(1/len(sdface))
+            midvertex.scale(1 / len(sdface))
             # add the vertex that will be in the middle of the face
             sdvertices.append(midvertex)
 
             # add the new faces to end of the faces list
-            sdfaces += [[sdface[0], vs+1, vs+4, vs],
-                        [vs+1, sdface[1], vs+2, vs+4],
-                        [vs+4, vs+2, sdface[2], vs+3],
-                        [vs, vs+4, vs+3, sdface[3]]
-                        ]
+            sdfaces += [[sdface[0], vs + 1, vs + 4, vs],
+                        [vs + 1, sdface[1], vs + 2, vs + 4],
+                        [vs + 4, vs + 2, sdface[2], vs + 3],
+                        [vs, vs + 4, vs + 3, sdface[3]]]
     return sdvertices, sdfaces
 
 
-def copy_faces(faces: list[list[int]]):
+def copy_faces(faces):
     """Deep copy faces of an object
 
     Args:
@@ -323,7 +322,7 @@ def copy_faces(faces: list[list[int]]):
     return copy
 
 
-def copy_vertices(vertices: list[Vec3d]):
+def copy_vertices(vertices):
     """Copy vertices of an object
 
     Args:
@@ -385,7 +384,3 @@ def start():
 
     # Start Event Processing Engine
     glutMainLoop()
-
-
-# Print message to console, and kick off the main to get it rolling.
-print("Hit ESC key to quit.")

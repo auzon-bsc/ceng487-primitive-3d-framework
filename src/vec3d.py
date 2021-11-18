@@ -11,7 +11,7 @@ from matrix import Matrix
 
 
 class Vec3d:
-    def __init__(self, coordinate: list[float] = [0, 0, 0, 0]):
+    def __init__(self, coordinate=[0, 0, 0, 0]):
         self.matrix = Matrix([[coordinate[0]],
                               [coordinate[1]],
                               [coordinate[2]],

@@ -3,7 +3,6 @@
 # StudentId: 260201039
 # October 2021
 
-import math
 from logging import error
 
 from mat3d import Mat3d
@@ -25,8 +24,7 @@ class Obj3d:
       Args:
           vertices (list[list[float]]): Vertex list contains vertices, vertices contains float values
       """
-
-    def __init__(self, vertices: list[list[float]], faces: list[list[int]]) -> None:
+    def __init__(self, vertices, faces) -> None:
         # create vec3d objects from vertices and add them to vertices array of this object
         self.vertices: list[Vec3d] = [Vec3d(vertex) for vertex in vertices]
 
@@ -115,25 +113,26 @@ class Obj3d:
         self.push_transformation()
 
         for val in TransformationOrder:
-            match val:
-                case TransformationOrder.SCALE:
-                    self.transformation.matrix = self.transformation.matrix.multiply(
-                        self.scaling.matrix)
-                    self.scaling = Mat3d.identity()
 
-                case TransformationOrder.ROTATION:
-                    self.transformation.matrix = self.transformation.matrix.multiply(
-                        self.rotation.matrix)
-                    self.rotation = Mat3d.identity()
+            if val is TransformationOrder.SCALE:
+                self.transformation.matrix = self.transformation.matrix.multiply(
+                    self.scaling.matrix)
+                self.scaling = Mat3d.identity()
 
-                case TransformationOrder.TRANSLATION:
-                    self.transformation.matrix = self.transformation.matrix.multiply(
-                        self.translation.matrix)
-                    self.translation = Mat3d.identity()
+            elif val is TransformationOrder.ROTATION:
+                self.transformation.matrix = self.transformation.matrix.multiply(
+                    self.rotation.matrix)
+                self.rotation = Mat3d.identity()
 
-                case _:
-                    raise error(
-                        "There is a problem with TransformationOrder ENUM")
+            elif val is TransformationOrder.TRANSLATION:
+                self.transformation.matrix = self.transformation.matrix.multiply(
+                    self.translation.matrix)
+                self.translation = Mat3d.identity()
+
+            else:
+                raise error("There is a problem with TransformationOrder ENUM")
 
         # multiply vertices with transformation matrix and return transformed Vec3d list
-        return [vertex.transform(self.transformation) for vertex in self.vertices]
+        return [
+            vertex.transform(self.transformation) for vertex in self.vertices
+        ]
