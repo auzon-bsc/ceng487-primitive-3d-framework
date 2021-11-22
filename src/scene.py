@@ -1,8 +1,3 @@
-import copy
-
-from obj3d import Obj3d
-
-
 class Scene:
     """
     Scene class holds 3D objects.
