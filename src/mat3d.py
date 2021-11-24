@@ -144,7 +144,7 @@ class Mat3d:
 
         return Mat3d(tmp_mat)
 
-    def multiply(self, other: Matrix):
+    def multiply(self, other):
         """Multiply this 4x4 matrix with 4x? any matrix
 
         Args:
@@ -153,4 +153,6 @@ class Mat3d:
         Returns:
             Matrix: Multiplied 4x? matrix
         """
-        return self.matrix.multiply(other)
+        multiplied_matrix = self.matrix.multiply(other.matrix)
+        matrix_arr = multiplied_matrix.matrix_arr
+        return Mat3d(matrix_arr)
