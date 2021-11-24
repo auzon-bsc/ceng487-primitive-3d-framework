@@ -12,10 +12,8 @@ from matrix import Matrix
 
 class Vec3d:
     def __init__(self, coordinate=[0, 0, 0, 0]):
-        self.matrix = Matrix([[coordinate[0]],
-                              [coordinate[1]],
-                              [coordinate[2]],
-                              [coordinate[3]]])
+        self.matrix = Matrix([[coordinate[0]], [coordinate[1]],
+                              [coordinate[2]], [coordinate[3]]])
 
     @property
     def x(self):
@@ -52,29 +50,26 @@ class Vec3d:
     @property
     def tuple(self):
         return (self.x, self.y, self.z)
-
+        
     def __str__(self):
         str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
         return str
 
     def __add__(self, other):
-        if(self.w != other.w):
+        if (self.w != other.w):
             raise error("Vectors and point cannot be added")
 
         else:
-            return Vec3d([self.x + other.x,
-                          self.y + other.y,
-                          self.z + other.z,
-                          self.w]
-                         )
+            return Vec3d(
+                [self.x + other.x, self.y + other.y, self.z + other.z, self.w])
 
     def substract(self, vec2):
         """Substract vec2 from vec1 (vec1 - vec2)
 
-    Args:
-        vec1 (Vec3d): Minuend
-        vec2 (Vec3d): Subtrahend
-    """
+        Args:
+            vec1 (Vec3d): Minuend
+            vec2 (Vec3d): Subtrahend
+        """
         vec2.negative()
         self.add(vec2)
         vec2.negative()
@@ -82,15 +77,15 @@ class Vec3d:
     def clone(self):
         """Clone this vector
 
-    Returns:
-        Vec3d: The cloned vector which its coordinates are the same as the original one
-    """
+        Returns:
+            Vec3d: The cloned vector which its coordinates are the same as the original one
+        """
         coordinate = [self.x, self.y, self.z, self.w]
         return Vec3d(coordinate)
 
     def negative(self):
         """Convert this vector to its negative
-    """
+        """
         self.x = -self.x
         self.y = -self.y
         self.z = -self.z
@@ -98,9 +93,9 @@ class Vec3d:
     def scale(self, factor):
         """Scale this vector
 
-    Args:
-        factor (int): Scaling factor
-    """
+        Args:
+            factor (int): Scaling factor
+        """
         self.x *= factor
         self.y *= factor
         self.z *= factor
@@ -108,12 +103,12 @@ class Vec3d:
     def dot_product(self, other):
         """Dot product of the vector with another vector
 
-    Args:
-        other (Vec3d): Other vector to calculate its dot product with this vector
+        Args:
+            other (Vec3d): Other vector to calculate its dot product with this vector
 
-    Returns:
-        float: Result of the dot product
-    """
+        Returns:
+            float: Result of the dot product
+        """
         x = self.x * other.x
         y = self.y * other.y
         z = self.z * other.z
@@ -123,9 +118,9 @@ class Vec3d:
     def magnitude(self):
         """Calculate the magnitude of this vector
 
-    Returns:
-        float: Magnitude of this vector
-    """
+        Returns:
+            float: Magnitude of this vector
+        """
         dp = self.dot_product(self)
         sqrt = math.sqrt(dp)
         return sqrt
@@ -133,9 +128,9 @@ class Vec3d:
     def angle(self, other):
         """Find angle between two vectors in radian
 
-    Returns:
-        float: angle between vectors in radian
-    """
+        Returns:
+            float: angle between vectors in radian
+        """
         dp = self.dot_product(other)
         magn_mult = self.magnitude() * other.magnitude()
         radian = math.acos(dp / magn_mult)
@@ -145,9 +140,9 @@ class Vec3d:
     def basis(self):
         """Calculate basis vector of this vector
 
-    Returns:
-        Vec3d: Basis vector of this vector
-    """
+        Returns:
+            Vec3d: Basis vector of this vector
+        """
         magn = self.magnitude()
         basis_x = self.x / magn
         basis_y = self.y / magn
@@ -158,12 +153,12 @@ class Vec3d:
     def project(self, other):
         """Take projection of this vector onto another one
 
-    Args:
-        other (Vec3d): The vector to be projected on
+        Args:
+            other (Vec3d): The vector to be projected on
 
-    Returns:
-        Vec3d: Projected vector of this vector onto other vector
-    """
+        Returns:
+            Vec3d: Projected vector of this vector onto other vector
+        """
         dp = self.dot_product(other)
         proj_magn = dp / other.magnitude()
         temp_vec = other.basis()
@@ -195,5 +190,5 @@ class Vec3d:
             Vec3d: Transormed Vec3d created from this object
         """
         clone = self.clone()
-        clone.matrix = tra_mat.multiply(clone.matrix)
+        clone.matrix = tra_mat.matrix.multiply(clone.matrix)
         return clone

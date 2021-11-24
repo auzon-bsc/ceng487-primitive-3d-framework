@@ -2,31 +2,64 @@
 # Oğuzhan Özer
 # StudentId: 260201039
 # November 2021
-# Runs in Python 3.10.0
+# Runs in Python 3.8.6
+from OpenGL.GLUT import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
 
-import glhelper
-import objparser as op
 from obj3d import Obj3d
-
+from vec3d import Vec3d
+from window.window import Window
+from scene.scene import Scene
+from input_handler.input_handler import InputHandler
+from obj_parser.obj_parser import *
 
 def main():
     # get filename
-    filename = op.parse_cl()
+    filename = parse_cl()
 
     # parse file to lines
-    lines = op.parse_lines(filename)
+    lines = parse_lines(filename)
 
     # parse object from the lines
-    vertices, faces = op.parse_obj(lines)
+    vertices, faces = parse_obj(lines)
 
     # create object from vertices and faces lists
-    obj3d = Obj3d(vertices, faces)
+    obj3D = Obj3d()
+    for vertex in vertices:
+        obj3D.addVertex(Vec3d(vertex))
+    for face in faces:
+        obj3D.addFace(face)
 
-    # add object to glhelper class and start drawing
-    glhelper.addobj(obj3d)
-    glhelper.start()
+    # Scene
+    scene = Scene()
+    scene.addObj3D(obj3D)
+    scene.addText("Press 'ESC' to quit.")
+    scene.addText("Press '+' to increase subdivisions.")
+    scene.addText("Press '-' to decrease subdivisions.")
 
-    print("Hit ESC key to quit.")
+    # Initialize glut
+    glutInit(sys.argv)
 
+    # Initialize 800x600 window
+    windowObject = Window()
+    windowObject.createWindow()
+    windowObject.initGL()
+    
+    # Registering draw function
+    glutDisplayFunc(scene.drawScene)
+    glutIdleFunc(scene.drawScene)
+    
+    # Input operations
+    inputHandler = InputHandler()
+    inputHandler.linkScene(scene)
 
-main()
+    # Register the function called when the keyboard is pressed.
+    glutKeyboardFunc(inputHandler.asciiKey)
+    glutSpecialFunc(inputHandler.nonAsciiKey)
+
+    # Start Event Processing Engine
+    glutMainLoop()
+
+if __name__ == '__main__':
+    main()

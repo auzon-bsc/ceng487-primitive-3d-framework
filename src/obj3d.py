@@ -3,8 +3,8 @@
 # StudentId: 260201039
 # October 2021
 
-from logging import error
-
+from typing import *
+import copy
 from mat3d import Mat3d
 from enum import Enum
 from vec3d import Vec3d
@@ -24,45 +24,64 @@ class Obj3d:
       Args:
           vertices (list[list[float]]): Vertex list contains vertices, vertices contains float values
       """
-    def __init__(self, vertices, faces) -> None:
-        # create vec3d objects from vertices and add them to vertices array of this object
-        self.vertices: list[Vec3d] = [Vec3d(vertex) for vertex in vertices]
+    _vertexList: List[Vec3d]
+    _faceList: List[List[int]]
 
-        # add all faces to faces list of this object
-        self.faces: list[list] = [face for face in faces]
+    _compositeScalingMatrix: Mat3d
+    _compositeRotationMatrix: Mat3d
+    _compositeTranslationMatrix: Mat3d
+
+    _subdivisionAmount: int
+
+    # _linkedScene: Scene
+
+    def __init__(self) -> None:
+        # create vec3d objects from vertices and add them to vertices array of this object
+        self._vertexList = []
+        self._faceList = []
 
         # set all transformation matrices to identity (objects won't be transformed)
-        self.transformation = Mat3d.identity()
-        self.translation = Mat3d.identity()
-        self.rotation = Mat3d.identity()
-        self.scaling = Mat3d.identity()
+        self._compositeScalingMatrix = Mat3d.identity()
+        self._compositeRotationMatrix = Mat3d.identity()
+        self._compositeTranslationMatrix = Mat3d.identity()
 
-        # transformation stack for remembering previous transformations
-        self.stack = [Mat3d.identity()]
+    def getVertexList(self):
+        vertexList = self._vertexList
+        vertexListClone = copy.deepcopy(vertexList)
+        return vertexListClone
 
-    def getfaces(self):
-        clone = []
-        for face in self.faces:
-            clone.append([vi for vi in face])
-        return clone
+    def getFaceList(self):
+        faceList = self._faceList
+        faceListClone = copy.deepcopy(faceList)
+        return faceListClone
 
-    def push_transformation(self):
-        """Push current transformation to the stack
+    def setVertexList(self, vertexList):
+        vertexListClone = copy.deepcopy(vertexList)
+        self._vertexList = vertexListClone
+    
+    def setFaceList(self, faceList):
+        faceListClone = copy.deepcopy(faceList)
+        self._faceList = faceListClone
 
-        Args:
-            transformation (Mat3d): Transformation matrix to be added
-        """
-        self.stack.append(self.transformation)
+    def addVertex(self, vertex: Vec3d):
+        vertexList = self._vertexList
+        vertexClone = copy.deepcopy(vertex)
+        vertexList.append(vertexClone)
 
-    def pop_transformation(self):
-        """Pop a transformation from the stack
+    def removeVertex(self, vertex: Vec3d):
+        vertexList = self._vertexList
+        vertexList.remove(vertex)
 
-        Args:
-            transformation (Mat3d): Transformation matrix to be popped
-        """
-        self.stack.pop()
+    def popVertex(self, vertexIndex: Vec3d):
+        vertexList = self._vertexList
+        vertexList.pop(vertexIndex)
 
-    def scale(self, sx, sy, sz):
+    def addFace(self, face: List[int]):
+        faceList = self._faceList
+        faceClone = copy.deepcopy(face)
+        faceList.append(faceClone)
+
+    def scale(self, sx: float, sy: float, sz: float):
         """Scale the object.
 
         Args:
@@ -70,10 +89,14 @@ class Obj3d:
             sy (float): Scale amount on y axis
             sz (float): Scale amount on z axis
         """
-        tmp_sca = Mat3d.scale(sx, sy, sz)
-        self.scaling.matrix = self.scaling.matrix.multiply(tmp_sca.matrix)
+        scalingMatrix = Mat3d.scale(sx, sy, sz)
+        # scalingMatrixList = self._scalingMatrixList
+        # scalingMatrixList.append(scalingMatrix)
+        compositeScalingMatrix = self._compositeScalingMatrix
+        self._compositeScalingMatrix = scalingMatrix.multiply(
+            compositeScalingMatrix)
 
-    def rotate(self, axis: str, point: Vec3d, degree: float):
+    def rotate(self, axis: str, degree: float):
         """Rotate the object around an axis and around a point
 
         Args:
@@ -81,58 +104,157 @@ class Obj3d:
             point (Vec3d): The point to rotate around
             degree (float): Rotation amount/degree
         """
-        tmp_tra = Mat3d.translation(-point.x, -point.y, -point.z)
-        tmp_rot = Mat3d.rotation(axis, degree)
-        tmp_tra_inv = Mat3d.inverse_translation(-point.x, -point.y, -point.z)
-        self.rotation.matrix = self.rotation.matrix.multiply(tmp_tra.matrix)
-        self.rotation.matrix = self.rotation.matrix.multiply(tmp_rot.matrix)
-        self.rotation.matrix = self.rotation.matrix.multiply(
-            tmp_tra_inv.matrix)
+        rotationMatrix = Mat3d.rotation(axis, degree)
+        # rotationMatrixList = self._rotationMatrixList
+        # rotationMatrixList.append(rotationMatrix)
+        compositeRotationMatrix = self._compositeRotationMatrix
+        self._compositeRotationMatrix = rotationMatrix.multiply(
+            compositeRotationMatrix)
 
-    def translate(self, x, y, z):
+    def translate(self, dx, dy, dz):
         """Translate the object
 
         Args:
-            x (float): Translation amount on x axis
-            y (float): Translation amount on y axis
-            z (float): Translation amount on z axis
+            dx (float): Translation amount on x axis
+            dy (float): Translation amount on y axis
+            dz (float): Translation amount on z axis
         """
-        tmp_tra = Mat3d.translation(x, y, z)
-        self.translation.matrix = self.translation.matrix.multiply(
-            tmp_tra.matrix)
+        translationMatrix = Mat3d.translation(dx, dy, dz)
+        # translationMatrixList = self._translationMatrixList
+        # translationMatrixList.append(translationMatrix)
+        compositeTranslationMatrix = self._compositeTranslationMatrix
+        self._compositeTranslationMatrix = translationMatrix.multiply(
+            compositeTranslationMatrix)
 
-    def transform(self):
-        """Calculate composite transformation matrix and generate transformed vertices based on this object
-
-        Raises:
-            error: When there is a problem related to transformation order enumeration
-
-        Returns:
-            list[Matrix]: Transformed 4x1 matrix list
-        """
-        self.push_transformation()
-
+    def calculateCompositeTransformationMatrix(self):
+        cumulativeMatrix = Mat3d.identity()
         for val in TransformationOrder:
-
             if val is TransformationOrder.SCALE:
-                self.transformation.matrix = self.transformation.matrix.multiply(
-                    self.scaling.matrix)
-                self.scaling = Mat3d.identity()
+                compositeScalingMatrix = self._compositeScalingMatrix
+                cumulativeMatrix = compositeScalingMatrix.multiply(
+                    cumulativeMatrix)
 
             elif val is TransformationOrder.ROTATION:
-                self.transformation.matrix = self.transformation.matrix.multiply(
-                    self.rotation.matrix)
-                self.rotation = Mat3d.identity()
+                compositeRotationMatrix = self._compositeRotationMatrix
+                cumulativeMatrix = compositeRotationMatrix.multiply(
+                    cumulativeMatrix)
 
             elif val is TransformationOrder.TRANSLATION:
-                self.transformation.matrix = self.transformation.matrix.multiply(
-                    self.translation.matrix)
-                self.translation = Mat3d.identity()
+                compositeTranslationMatrix = self._compositeTranslationMatrix
+                cumulativeMatrix = compositeTranslationMatrix.multiply(
+                    cumulativeMatrix)
 
             else:
-                raise error("There is a problem with TransformationOrder ENUM")
+                raise KeyError(
+                    "There is no key '{key}' in TransformationOrder ENUM")
 
-        # multiply vertices with transformation matrix and return transformed Vec3d list
-        return [
-            vertex.transform(self.transformation) for vertex in self.vertices
-        ]
+        compositeTransformationMatrix = cumulativeMatrix
+        return compositeTransformationMatrix
+
+    def calculateTransformedVertexList(self):
+        vertexList = self._vertexList
+        compositeTransformationMatrix = self.calculateCompositeTransformationMatrix(
+        )
+        tempVertexList = []
+        for vertex in vertexList:
+            transformedVertex = vertex.transform(compositeTransformationMatrix)
+            tempVertexList.append(transformedVertex)
+        transformedVertexList = tempVertexList
+        return transformedVertexList
+
+    def getFaceVertexList(self, singleFace):
+        faceVertexList = []
+        vertexList = self._vertexList
+        for vertexPointer in singleFace:
+            pointeeVertex = vertexList[vertexPointer]
+            faceVertexList.append(pointeeVertex)
+        return faceVertexList
+
+    def calculateMiddleVertex(self, vertexList):
+        sumVertex = Vec3d([0.0, 0.0, 0.0, 1.0])
+        vertexListLength = len(vertexList)
+        vertexListRange = range(vertexListLength)
+        for vertexIndex in vertexListRange:
+            currentVertex = vertexList[vertexIndex]
+            sumVertex += currentVertex
+        avarageCoefficient = 1 / vertexListLength
+        sumVertex.scale(avarageCoefficient)
+        return sumVertex
+
+    def calculateEdgeMiddleVertexList(self, singleFace):
+        baseVertexList = self.getFaceVertexList(singleFace)
+        cumulativeEdgeMiddleVertexList = []
+        baseVertexListLength = len(baseVertexList)
+        baseVertexListRange = range(baseVertexListLength)
+        for vertexIndex in baseVertexListRange:
+            previousVertexIndex = vertexIndex - 1
+            currentVertexIndex = vertexIndex
+            previousVertex = baseVertexList[previousVertexIndex]
+            currentVertex = baseVertexList[currentVertexIndex]
+            consecutiveVertexList = [previousVertex, currentVertex]
+            singleEdgeMiddleVertex = self.calculateMiddleVertex(consecutiveVertexList)
+            cumulativeEdgeMiddleVertexList.append(singleEdgeMiddleVertex)
+        return cumulativeEdgeMiddleVertexList
+    
+    def divideFace(self, singleFace):
+        # Vertex calculation
+        baseVertexList = self.getFaceVertexList(singleFace)
+        middleVertex = self.calculateMiddleVertex(baseVertexList)
+        edgeMiddleVertexList = self.calculateEdgeMiddleVertexList(singleFace)
+        dividedVertexList = baseVertexList + edgeMiddleVertexList + [middleVertex]
+        # Face calculation
+        rightBottomFace = [0, 5, 8, 4]
+        rightTopFace = [5, 1, 6, 8]
+        leftTopFace = [8, 6, 2, 7]
+        leftBottomFace = [4, 8, 7, 3]
+        # Append faces to cumulativeFaceList
+        cumulativeFaceList = []
+        cumulativeFaceList.append(rightBottomFace)
+        cumulativeFaceList.append(rightTopFace)
+        cumulativeFaceList.append(leftTopFace)
+        cumulativeFaceList.append(leftBottomFace)
+        dividedFaceList = cumulativeFaceList
+        #
+        return dividedVertexList, dividedFaceList
+    
+    def calibrateFaceList(self, moveAmount, faceList):
+        cumulativeFaceList = []
+        for singleFace in faceList:
+            calibratedFace = self.calibrateSingleFace(moveAmount, singleFace)
+            cumulativeFaceList.append(calibratedFace)
+        return cumulativeFaceList
+
+    def calibrateSingleFace(self, moveAmount, singleFace):
+        cumulativeFace = []
+        singleFaceLength = len(singleFace)
+        singleFaceRange = range(singleFaceLength)
+        for vertexPointerIndex in singleFaceRange:
+            calibratedVertexPointer = singleFace[vertexPointerIndex] + moveAmount 
+            cumulativeFace.append(calibratedVertexPointer)
+        calibratedSingleFace = cumulativeFace
+        return calibratedSingleFace
+
+    def subdivideVertexListFaceList(self):
+        cumulativeVertexList = []
+        cumulativeFaceList = []
+        faceList = self.getFaceList()
+        for singleFace in faceList:
+            dividedVertexList, dividedFaceList = self.divideFace(singleFace)
+            cumulativeVertexListLength = len(cumulativeVertexList)
+            calibratedDividedFaceList = self.calibrateFaceList(cumulativeVertexListLength, dividedFaceList)
+            cumulativeVertexList += dividedVertexList
+            cumulativeFaceList += calibratedDividedFaceList
+        subdividedVertexList = cumulativeVertexList
+        subdividedFaceList = cumulativeFaceList
+        return subdividedVertexList, subdividedFaceList
+        
+
+    def subdivision(self, subdivisionAmount):
+        mutantObj3D = copy.deepcopy(self)
+        subdivisionRange = range(subdivisionAmount)
+        for subdivisionStep in subdivisionRange:
+            subdividedVertexList, subdividedFaceList = mutantObj3D.subdivideVertexListFaceList()
+            mutantObj3D.setVertexList(subdividedVertexList)
+            mutantObj3D.setFaceList(subdividedFaceList)
+        subdividedObject = mutantObj3D
+        return subdividedObject
