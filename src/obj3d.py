@@ -252,7 +252,7 @@ class Obj3d:
     def subdivision(self, subdivisionAmount):
         mutantObj3D = copy.deepcopy(self)
         subdivisionRange = range(subdivisionAmount)
-        for subdivisionStep in subdivisionRange:
+        for _ in subdivisionRange:
             subdividedVertexList, subdividedFaceList = mutantObj3D.subdivideVertexListFaceList()
             mutantObj3D.setVertexList(subdividedVertexList)
             mutantObj3D.setFaceList(subdividedFaceList)

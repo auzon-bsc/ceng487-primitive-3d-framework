@@ -3,7 +3,6 @@
 # StudentId: 260201039
 # October 2021
 
-from logging import error
 import math
 
 from mat3d import Mat3d
@@ -57,11 +56,23 @@ class Vec3d:
 
     def __add__(self, other):
         if (self.w != other.w):
-            raise error("Vectors and point cannot be added")
+            raise TypeError("Vectors and point cannot be added")
 
         else:
+            addedX = self.x + other.x
+            addedY = self.y + other.y
+            addedZ = self.z + other.z
+            w = self.w
+            return Vec3d([addedX, addedY, addedZ, w])
+    
+    def __sub__(self, other):
+        if (self.w != other.w):
+            raise TypeError("Vectors and point cannot be subtracted")
+        
+        else:
             return Vec3d(
-                [self.x + other.x, self.y + other.y, self.z + other.z, self.w])
+                [self.x - other.x, self.y - other.y, self.z]
+            )
 
     def substract(self, vec2):
         """Substract vec2 from vec1 (vec1 - vec2)
