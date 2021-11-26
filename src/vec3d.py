@@ -51,8 +51,8 @@ class Vec3d:
         return (self.x, self.y, self.z)
         
     def __str__(self):
-        str = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
-        return str
+        s = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
+        return s
 
     def __add__(self, other):
         if (self.w != other.w):
