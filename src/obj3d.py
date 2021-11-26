@@ -90,8 +90,6 @@ class Obj3d:
             sz (float): Scale amount on z axis
         """
         scalingMatrix = Mat3d.scale(sx, sy, sz)
-        # scalingMatrixList = self._scalingMatrixList
-        # scalingMatrixList.append(scalingMatrix)
         compositeScalingMatrix = self._compositeScalingMatrix
         self._compositeScalingMatrix = scalingMatrix.multiply(
             compositeScalingMatrix)
@@ -105,8 +103,6 @@ class Obj3d:
             degree (float): Rotation amount/degree
         """
         rotationMatrix = Mat3d.rotation(axis, degree)
-        # rotationMatrixList = self._rotationMatrixList
-        # rotationMatrixList.append(rotationMatrix)
         compositeRotationMatrix = self._compositeRotationMatrix
         self._compositeRotationMatrix = rotationMatrix.multiply(
             compositeRotationMatrix)
@@ -120,8 +116,6 @@ class Obj3d:
             dz (float): Translation amount on z axis
         """
         translationMatrix = Mat3d.translation(dx, dy, dz)
-        # translationMatrixList = self._translationMatrixList
-        # translationMatrixList.append(translationMatrix)
         compositeTranslationMatrix = self._compositeTranslationMatrix
         self._compositeTranslationMatrix = translationMatrix.multiply(
             compositeTranslationMatrix)
