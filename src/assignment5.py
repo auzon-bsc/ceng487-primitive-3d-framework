@@ -22,7 +22,7 @@ def main():
     lines = parse_lines(filename)
 
     # parse object from the lines
-    vertices, faces = parse_obj(lines)
+    vertices, faces, edges = parse_obj(lines)
 
     # create object from vertices and faces lists
     obj3D = Obj3d()
@@ -30,6 +30,10 @@ def main():
         obj3D.addVertex(Vec3d(vertex))
     for face in faces:
         obj3D.addFace(face)
+    for edge in edges:
+        obj3D.addEdge(edge)
+
+    print(edges)
 
     # Scene
     scene = Scene()

@@ -82,9 +82,11 @@ def findObjectEdges(faces):
 def findFaceEdges(face):
     faceEdges = []
     # find the edges of the face
-    for i in face:
-        startVertex = face[i - 1]
-        endVertex = face[i]
+    lenFace = len(face)
+    rangeFace = range(lenFace)
+    for i in rangeFace:
+        startVertex = face[i]
+        endVertex = face[(i + 1) % lenFace]
         edge = createEdge(startVertex, endVertex)
         faceEdges.append(edge)
     return faceEdges

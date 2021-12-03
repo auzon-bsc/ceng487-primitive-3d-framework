@@ -8,6 +8,45 @@ import copy
 from mat3d import Mat3d
 from enum import Enum
 from vec3d import Vec3d
+from dataclasses import dataclass
+
+@dataclass
+class FullAdjacencyList:
+    vertexAdjacencyTable: set
+    faceAdjacencyTable: set
+    edgeAdjacencyTable: set
+    
+    def fillAdjacency(self, vertices, faces, edges):
+        self.fillVertexAdjacencyTable(vertices, faces, edges)
+    
+    def fillVertexAdjacencyTable(self, vertices, faces, edges):
+        lenVertices = len(vertices)
+        rangeVertices = range(lenVertices)
+        for vertexIndex in rangeVertices:
+            singleVertexAdjacency = self.findSingleVertexAdjacency(vertexIndex, faces, edges)
+            self.vertexAdjacencyTable.add(singleVertexAdjacency)
+
+    def findSingleVertexAdjacency(self, vertexIndex, faces, edges):
+        singleVertexAdjacency = set()
+        for edge in edges:
+            if vertexIndex == edge[0]:
+                singleVertexAdjacency.add(edge)
+                singleVertexAdjacency.add(edge[1])
+            elif vertexIndex == edge[1]:
+                singleVertexAdjacency.add(edge)
+                singleVertexAdjacency.add(edge[0])
+        for face in faces:
+            if vertexIndex in face:
+                singleVertexAdjacency.add(face)
+        return singleVertexAdjacency
+
+
+    def fillFaceAdjacencyTable(self):
+        pass
+    
+    def fillEdgeAdjacencyTable(self):
+        pass
+
 
 
 class TransformationOrder(Enum):
@@ -16,7 +55,6 @@ class TransformationOrder(Enum):
     SCALE = 0
     ROTATION = 1
     TRANSLATION = 2
-
 
 class Obj3d:
     """Create and manipulate 3D objects
@@ -81,6 +119,9 @@ class Obj3d:
         faceList = self._faceList
         faceClone = copy.deepcopy(face)
         faceList.append(faceClone)
+
+    def addEdge(self, edge):
+        self._edgeList.append(edge)
 
     def scale(self, sx: float, sy: float, sz: float):
         """Scale the object.
@@ -242,7 +283,6 @@ class Obj3d:
         subdividedVertexList = cumulativeVertexList
         subdividedFaceList = cumulativeFaceList
         return subdividedVertexList, subdividedFaceList
-        
 
     def subdivision(self, subdivisionAmount):
         mutantObj3D = copy.deepcopy(self)
