@@ -39,6 +39,7 @@ class Obj3d:
         # create vec3d objects from vertices and add them to vertices array of this object
         self._vertexList = []
         self._faceList = []
+        self._edgeList = []
 
         # set all transformation matrices to identity (objects won't be transformed)
         self._compositeScalingMatrix = Mat3d.identity()
@@ -252,3 +253,32 @@ class Obj3d:
             mutantObj3D.setFaceList(subdividedFaceList)
         subdividedObject = mutantObj3D
         return subdividedObject
+
+    def catmullClark(self):
+        """
+        To make catmull clark subdivision, 
+        
+        For each face add a face point, 
+            To find face point,
+            Find the average of all original points for the respective face
+                To find the average,
+                Sum all points and divide the number of points
+        
+        For each edge, add an edge point, 
+            To find the edge point,
+            Find the average of the two neighboring face points and its two original endpoints
+                To find the average,
+                Sum all points and divide the number of points
+        
+        For each original point (P), 
+        take the average (F) of all n (recently created) face points for faces touching P, 
+        and take the average (R) of all n edge midpoints for original edges touching P, 
+        where each edge midpoint is the average of its two endpoint vertices,
+        Move each original point to the new vertex point ( F + 2R + (n - 3)P ) / n -barycenter-
+        
+        Form edges and meshes in the new mesh
+            Connect each new face point to the new edge points of all original edges defining the original face
+            Connect each new vertex point to the new edge points of all original edges incident on the original vertex
+            Define new faces as enclosed by edges
+        """
+        pass

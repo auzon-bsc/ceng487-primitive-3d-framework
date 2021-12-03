@@ -20,7 +20,6 @@ def parse_cl():
     # assign filename
     filename = sys.argv[1]
 
-    # return filename
     return filename
 
 
@@ -68,4 +67,28 @@ def parse_obj(lines: "list[str]"):
             # convert each string in the line to int list and add that list to face list
             faces.append([int(x) - 1 for x in splitted_line])
 
-    return vertices, faces
+        # find the edges of the object
+        edges = findObjectEdges(faces)
+
+    return vertices, faces, edges
+
+def findObjectEdges(faces):
+    objectEdges = []
+    for face in faces:
+        faceEdges = findFaceEdges(face)
+        objectEdges += faceEdges
+    return objectEdges
+
+def findFaceEdges(face):
+    faceEdges = []
+    # find the edges of the face
+    for i in face:
+        startVertex = face[i - 1]
+        endVertex = face[i]
+        edge = createEdge(startVertex, endVertex)
+        faceEdges.append(edge)
+    return faceEdges
+
+def createEdge(startVertex, endVertex):
+    # create an edge
+    return startVertex, endVertex
