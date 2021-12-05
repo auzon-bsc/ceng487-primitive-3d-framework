@@ -33,6 +33,9 @@ class AdjacencyTable():
     def addAdjacency(self, adjacency):
         self.adjacencies.add(adjacency)
 
+    def getAdjacency(self, index):
+        return self.adjacencies[index]
+
 @dataclass
 class FullAdjacencyList:
     vertexAdjacencyTable: AdjacencyTable()
@@ -181,6 +184,15 @@ class Obj3d:
         faceList = self._faceList
         faceListClone = copy.deepcopy(faceList)
         return faceListClone
+
+    def getAdjacentFacesFromVertexIndex(self, vertexIndex):
+        return self._adjacencyList.vertexAdjacencyTable.adjacencies.getAdjacency(vertexIndex).adjacentFaces
+    
+    def getAdjacentVerticesFromVertexIndex(self, vertexIndex):
+        return self._adjacencyList.vertexAdjacencyTable.adjacencies.getAdjacency(vertexIndex).adjacentVertices
+    
+    def getAdjacentEdgesFromVertexIndex(self, vertexIndex):
+        return self._adjacencyList.vertexAdjacencyTable.adjacencies.getAdjacency(vertexIndex).adjacentEdges
 
     def setVertexList(self, vertexList):
         vertexListClone = copy.deepcopy(vertexList)
@@ -382,7 +394,7 @@ class Obj3d:
         subdividedObject = mutantObj3D
         return subdividedObject
 
-    def catmullClark(self):
+    def catmullClark(self, faces, edges):
         """
         To make catmull clark subdivision, 
         
@@ -410,4 +422,38 @@ class Obj3d:
             Define new faces as enclosed by edges
         """
         self._adjacencyList.fillAdjacencyTable()
+
+        newPoints = []
+        originalPoints = self._getVertexList()
+        lenOriginalPoints = len(originalPoints)
+        rangeOriginalPoints = range(lenOriginalPoints)
+        for aPointIndex in rangeOriginalPoints:
+            P = originalPoints[aPointIndex]
+            
+            adjacentFaces = self.getAdjacentFacesFromVertexIndex(aPointIndex)
+            facePoints = []
+            for aFace in adjacentFaces:
+                faceMiddle = self._findFacePoint(aFace)
+                facePoints.append(faceMiddle)
+            
+            adjacentEdges = self.getAdjacentFacesFromVertexIndex(aPointIndex)
+            edgePoints = []
+            for anEdge in adjacentEdges:
+                edgeMiddle = self._findEdgePoint(anEdge)
+                edgePoints.append(edgeMiddle)
+            
+            F = self._avarageVertex(facePoints)
+            R = self._avarageVertex(edgePoints)
+            n = len(facePoints)
+            newPoint = (F + 2*R + (n - 3)*P) / n
+            newPoints.append(newPoint)
+
+    
+    def _findFacePoint(self, face):
+        pass
+
+    def _findEdgePoint(self, edge):
+        pass
+
+    def _avarageVertex(self, vertexList):
         pass
