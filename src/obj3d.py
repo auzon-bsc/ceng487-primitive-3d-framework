@@ -3,6 +3,7 @@
 # StudentId: 260201039
 # October 2021
 
+from abc import ABC, abstractmethod
 from typing import *
 import copy
 from mat3d import Mat3d
@@ -11,41 +12,125 @@ from vec3d import Vec3d
 from dataclasses import dataclass
 
 @dataclass
+class Adjacency():
+    adjacentVertices = set()
+    adjacentFaces = set()
+    adjacentEdges = set()
+
+    def addVertex(self, vertex):
+        self.adjacentVertices.add(vertex)
+    
+    def addFace(self, face):
+        self.adjacentFaces.add(face)
+    
+    def addEdge(self, edge):
+        self.adjacentEdges.add(edge)
+
+@dataclass
+class AdjacencyTable():
+    adjacencies = set()
+    
+    def addAdjacency(self, adjacency):
+        self.adjacencies.add(adjacency)
+
+@dataclass
 class FullAdjacencyList:
-    vertexAdjacencyTable: set
-    faceAdjacencyTable: set
-    edgeAdjacencyTable: set
+    vertexAdjacencyTable: AdjacencyTable()
+    faceAdjacencyTable: AdjacencyTable()
+    edgeAdjacencyTable: AdjacencyTable()
     
     def fillAdjacency(self, vertices, faces, edges):
-        self.fillVertexAdjacencyTable(vertices, faces, edges)
+        self._fillVertexAdjacencyTable(vertices, faces, edges)
+        self._fillFaceAdjacencyTable(faces, edges)
+        self._fillEdgeAdjacencyTable(vertices, faces, edges)
     
-    def fillVertexAdjacencyTable(self, vertices, faces, edges):
+    def _fillVertexAdjacencyTable(self, vertices, faces, edges):
         lenVertices = len(vertices)
         rangeVertices = range(lenVertices)
         for vertexIndex in rangeVertices:
-            singleVertexAdjacency = self.findSingleVertexAdjacency(vertexIndex, faces, edges)
-            self.vertexAdjacencyTable.add(singleVertexAdjacency)
+            vertexAdjacency = self._findVertexAdjacency(vertexIndex, faces, edges)
+            self.vertexAdjacencyTable.add(vertexAdjacency)
 
-    def findSingleVertexAdjacency(self, vertexIndex, faces, edges):
-        singleVertexAdjacency = set()
+    def _findVertexAdjacency(self, vertexIndex, faces, edges):
+        """Find single vertex adjacency"""
+        vertexAdjacency = Adjacency()
         for edge in edges:
             if vertexIndex == edge[0]:
-                singleVertexAdjacency.add(edge)
-                singleVertexAdjacency.add(edge[1])
+                vertexAdjacency.addEdge(edge)
+                edgeEnd = edge[1]
+                vertexAdjacency.addVertex(edgeEnd)
             elif vertexIndex == edge[1]:
-                singleVertexAdjacency.add(edge)
-                singleVertexAdjacency.add(edge[0])
+                vertexAdjacency.addEdge(edge)
+                edgeStart = edge[0]
+                vertexAdjacency.addVertex(edgeStart)
         for face in faces:
             if vertexIndex in face:
-                singleVertexAdjacency.add(face)
-        return singleVertexAdjacency
+                vertexAdjacency.addFace(face)
+        return vertexAdjacency
 
-
-    def fillFaceAdjacencyTable(self):
-        pass
+    def _fillFaceAdjacencyTable(self, faces, edges):
+        for face in faces:
+            faceAdjacency = self._findFaceAdjacency(face, faces, edges)
+            self.faceAdjacencyTable.addAdjacency(faceAdjacency)
     
-    def fillEdgeAdjacencyTable(self):
-        pass
+    def _findFaceAdjacency(self, face, faces, edges):
+        faceAdjacency = Adjacency()
+        # find adjacent edges
+        for edge in edges:
+            # add the edges of the face
+            if edge[0] in face and edge[1] in face:
+                faceAdjacency.addEdge(edge)
+        # find adjacent vertices
+        for vertexIndex in face:
+            # add the vertices of the face
+            faceAdjacency.addVertex(vertexIndex)
+        # find adjacent faces
+        for otherFace in faces:
+            # a face cannot be adjacent to itself
+            if otherFace == face:
+                continue
+            else:
+                for edge in edges:
+                    # add the otherFace if they share an edge
+                    if edge[0] in face and edge[1] in face and edge[0] in otherFace and edge[1] in otherFace:
+                        faceAdjacency.addFace(otherFace)
+        return faceAdjacency
+
+    def _fillEdgeAdjacencyTable(self, vertices, faces, edges):
+        for edge in edges:
+            edgeAdjacency = self._findEdgeAdjacency(edge, faces, vertices, edges)
+            self.edgeAdjacencyTable.addAdjacency(edgeAdjacency)
+
+    def _findEdgeAdjacency(self, edge, vertices, faces, edges):
+        edgeAdjacency = Adjacency()
+        edgeStart = edge[0]
+        edgeEnd = edge[1]
+        # adjacent vertices: start and end vertices of the edge   
+        edgeAdjacency.addVertex(edgeStart)
+        edgeAdjacency.addVertex(edgeEnd)
+        # adjacent faces: any face including start and end vertices of the edge
+        for aFace in faces:
+            startExists = False
+            endExists = False
+            for vertexIndex in aFace:
+                currentVertex = vertices[vertexIndex]
+                if currentVertex == edgeStart:
+                    startExists = True
+                elif currentVertex == edgeEnd:
+                    endExists = True
+            # the start vertex and end vertex of the edge is on the face
+            if startExists and endExists:
+                edgeAdjacency.addFace(aFace)
+        # find adjacent edges
+        for anEdge in edges:
+            for aFace in edgeAdjacency.adjacentFaces:
+                # same edge
+                if anEdge[0] in aFace and anEdge[1] in aFace:
+                    continue
+                 # an edge shares a point of base edge and it's on adjacent face
+                elif anEdge[0] in aFace or anEdge[1] in aFace:
+                    edgeAdjacency.addEdge(anEdge)
+
 
 
 
@@ -71,7 +156,7 @@ class Obj3d:
 
     _subdivisionAmount: int
 
-    # _linkedScene: Scene
+    _adjacencyList: FullAdjacencyList
 
     def __init__(self) -> None:
         # create vec3d objects from vertices and add them to vertices array of this object
@@ -83,6 +168,9 @@ class Obj3d:
         self._compositeScalingMatrix = Mat3d.identity()
         self._compositeRotationMatrix = Mat3d.identity()
         self._compositeTranslationMatrix = Mat3d.identity()
+
+        # adjacency list
+        self._adjacencyList = FullAdjacencyList()
 
     def getVertexList(self):
         vertexList = self._vertexList
@@ -321,4 +409,5 @@ class Obj3d:
             Connect each new vertex point to the new edge points of all original edges incident on the original vertex
             Define new faces as enclosed by edges
         """
+        self._adjacencyList.fillAdjacencyTable()
         pass
