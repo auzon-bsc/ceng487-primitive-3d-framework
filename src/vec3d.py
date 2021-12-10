@@ -11,8 +11,10 @@ from matrix import Matrix
 
 class Vec3d:
     def __init__(self, coordinate=[0, 0, 0, 0]):
-        self.matrix = Matrix([[coordinate[0]], [coordinate[1]],
-                              [coordinate[2]], [coordinate[3]]])
+        self.matrix = Matrix([[coordinate[0]], 
+                              [coordinate[1]],
+                              [coordinate[2]], 
+                              [coordinate[3]]])
 
     @property
     def x(self):
@@ -51,12 +53,12 @@ class Vec3d:
         return (self.x, self.y, self.z)
         
     def __str__(self):
-        s = "(x, y, z): (%s, %s, %s)" % (self.x, self.y, self.z)
+        s = "(x, y, z, w): (%s, %s, %s, %s)" % (self.x, self.y, self.z, self.w)
         return s
 
     def __add__(self, other):
         if (self.w != other.w):
-            raise TypeError("Vectors and point cannot be added")
+            print(f"ERROR: Vectors and point cannot be added")
 
         else:
             addedX = self.x + other.x
@@ -67,12 +69,18 @@ class Vec3d:
     
     def __sub__(self, other):
         if (self.w != other.w):
-            raise TypeError("Vectors and point cannot be subtracted")
+            print(f"ERROR: Vectors and point cannot be substracted")
         
         else:
             return Vec3d(
                 [self.x - other.x, self.y - other.y, self.z]
             )
+
+    def __eq__(self, __o: object) -> bool:
+        if self.x != __o.x or self.y != __o.y or self.z != __o.z or self.w != __o.w:
+            return False
+        else:
+            return True
 
     def substract(self, vec2):
         """Substract vec2 from vec1 (vec1 - vec2)

@@ -3,139 +3,11 @@
 # StudentId: 260201039
 # October 2021
 
-from abc import ABC, abstractmethod
 from typing import *
 import copy
 from mat3d import Mat3d
 from enum import Enum
 from vec3d import Vec3d
-from dataclasses import dataclass
-
-@dataclass
-class Adjacency():
-    adjacentVertices = set()
-    adjacentFaces = set()
-    adjacentEdges = set()
-
-    def addVertex(self, vertex):
-        self.adjacentVertices.add(vertex)
-    
-    def addFace(self, face):
-        self.adjacentFaces.add(face)
-    
-    def addEdge(self, edge):
-        self.adjacentEdges.add(edge)
-
-@dataclass
-class AdjacencyTable():
-    adjacencies = set()
-    
-    def addAdjacency(self, adjacency):
-        self.adjacencies.add(adjacency)
-
-    def getAdjacency(self, index):
-        return self.adjacencies[index]
-
-@dataclass
-class FullAdjacencyList:
-    vertexAdjacencyTable: AdjacencyTable()
-    faceAdjacencyTable: AdjacencyTable()
-    edgeAdjacencyTable: AdjacencyTable()
-    
-    def fillAdjacency(self, vertices, faces, edges):
-        self._fillVertexAdjacencyTable(vertices, faces, edges)
-        self._fillFaceAdjacencyTable(faces, edges)
-        self._fillEdgeAdjacencyTable(vertices, faces, edges)
-    
-    def _fillVertexAdjacencyTable(self, vertices, faces, edges):
-        lenVertices = len(vertices)
-        rangeVertices = range(lenVertices)
-        for vertexIndex in rangeVertices:
-            vertexAdjacency = self._findVertexAdjacency(vertexIndex, faces, edges)
-            self.vertexAdjacencyTable.add(vertexAdjacency)
-
-    def _findVertexAdjacency(self, vertexIndex, faces, edges):
-        """Find single vertex adjacency"""
-        vertexAdjacency = Adjacency()
-        for edge in edges:
-            if vertexIndex == edge[0]:
-                vertexAdjacency.addEdge(edge)
-                edgeEnd = edge[1]
-                vertexAdjacency.addVertex(edgeEnd)
-            elif vertexIndex == edge[1]:
-                vertexAdjacency.addEdge(edge)
-                edgeStart = edge[0]
-                vertexAdjacency.addVertex(edgeStart)
-        for face in faces:
-            if vertexIndex in face:
-                vertexAdjacency.addFace(face)
-        return vertexAdjacency
-
-    def _fillFaceAdjacencyTable(self, faces, edges):
-        for face in faces:
-            faceAdjacency = self._findFaceAdjacency(face, faces, edges)
-            self.faceAdjacencyTable.addAdjacency(faceAdjacency)
-    
-    def _findFaceAdjacency(self, face, faces, edges):
-        faceAdjacency = Adjacency()
-        # find adjacent edges
-        for edge in edges:
-            # add the edges of the face
-            if edge[0] in face and edge[1] in face:
-                faceAdjacency.addEdge(edge)
-        # find adjacent vertices
-        for vertexIndex in face:
-            # add the vertices of the face
-            faceAdjacency.addVertex(vertexIndex)
-        # find adjacent faces
-        for otherFace in faces:
-            # a face cannot be adjacent to itself
-            if otherFace == face:
-                continue
-            else:
-                for edge in edges:
-                    # add the otherFace if they share an edge
-                    if edge[0] in face and edge[1] in face and edge[0] in otherFace and edge[1] in otherFace:
-                        faceAdjacency.addFace(otherFace)
-        return faceAdjacency
-
-    def _fillEdgeAdjacencyTable(self, vertices, faces, edges):
-        for edge in edges:
-            edgeAdjacency = self._findEdgeAdjacency(edge, faces, vertices, edges)
-            self.edgeAdjacencyTable.addAdjacency(edgeAdjacency)
-
-    def _findEdgeAdjacency(self, edge, vertices, faces, edges):
-        edgeAdjacency = Adjacency()
-        edgeStart = edge[0]
-        edgeEnd = edge[1]
-        # adjacent vertices: start and end vertices of the edge   
-        edgeAdjacency.addVertex(edgeStart)
-        edgeAdjacency.addVertex(edgeEnd)
-        # adjacent faces: any face including start and end vertices of the edge
-        for aFace in faces:
-            startExists = False
-            endExists = False
-            for vertexIndex in aFace:
-                currentVertex = vertices[vertexIndex]
-                if currentVertex == edgeStart:
-                    startExists = True
-                elif currentVertex == edgeEnd:
-                    endExists = True
-            # the start vertex and end vertex of the edge is on the face
-            if startExists and endExists:
-                edgeAdjacency.addFace(aFace)
-        # find adjacent edges
-        for anEdge in edges:
-            for aFace in edgeAdjacency.adjacentFaces:
-                # same edge
-                if anEdge[0] in aFace and anEdge[1] in aFace:
-                    continue
-                 # an edge shares a point of base edge and it's on adjacent face
-                elif anEdge[0] in aFace or anEdge[1] in aFace:
-                    edgeAdjacency.addEdge(anEdge)
-
-
-
 
 class TransformationOrder(Enum):
     """Determines the transformation order
@@ -150,6 +22,7 @@ class Obj3d:
       Args:
           vertices (list[list[float]]): Vertex list contains vertices, vertices contains float values
       """
+    # ---- Type Definitions ----
     _vertexList: List[Vec3d]
     _faceList: List[List[int]]
 
@@ -159,69 +32,278 @@ class Obj3d:
 
     _subdivisionAmount: int
 
-    _adjacencyList: FullAdjacencyList
+    # vertex adjacency table
+    _vAT: List[Tuple[List, List, List]]
+    # face adjacency table
+    _fAT: List[Tuple[List, List, List]]
+    # edge adjacency table
+    _eAT: List[Tuple[List, List, List]]
+    
 
-    def __init__(self) -> None:
+    def __init__(self, vertexList, faceList) -> None:
         # create vec3d objects from vertices and add them to vertices array of this object
-        self._vertexList = []
-        self._faceList = []
-        self._edgeList = []
+        self._vertexList = vertexList
+        self._faceList = faceList
+        self._edgeList = self._calculateEdges()
+        # adjacency list
+        self._vAT = self._calculateVAT()
+        self._fAT = self._calculateFAT()
+        self._eAT = self._calculateEAT()
 
         # set all transformation matrices to identity (objects won't be transformed)
         self._compositeScalingMatrix = Mat3d.identity()
         self._compositeRotationMatrix = Mat3d.identity()
         self._compositeTranslationMatrix = Mat3d.identity()
 
-        # adjacency list
-        self._adjacencyList = FullAdjacencyList()
+
+    # ---- Getters ----
 
     def getVertexList(self):
         vertexList = self._vertexList
         vertexListClone = copy.deepcopy(vertexList)
+        
         return vertexListClone
 
     def getFaceList(self):
         faceList = self._faceList
         faceListClone = copy.deepcopy(faceList)
+        
         return faceListClone
 
-    def getAdjacentFacesFromVertexIndex(self, vertexIndex):
-        return self._adjacencyList.vertexAdjacencyTable.adjacencies.getAdjacency(vertexIndex).adjacentFaces
+
+    # ---- Edge Calculations ----
+
+    def _calculateEdges(self):
+        objectEdges = []
+        
+        for face in self._faceList:
+            faceEdges = []
+            
+            lenFace = len(face)
+            rangeFace = range(lenFace)
+            # find the edges of the face
+            for i in rangeFace:
+                startVertex = face[i]
+                endVertex = face[(i + 1) % lenFace]
+                edge = self._createEdge(startVertex, endVertex)
+                inverseEdge = self._createEdge(endVertex, startVertex)
+                # if edge is not already in edges append that edge
+                if edge not in objectEdges and inverseEdge not in objectEdges:
+                    faceEdges.append(edge)
+            # concatenate the edges of the face to all edges
+            objectEdges += faceEdges
+        
+        return objectEdges
+
+
+    def _createEdge(self, startVertex, endVertex):
+        # create an edge
+        return startVertex, endVertex
+
+    # ---- Adjacency Table Calculations of Vertices ----
+
+    def _calculateVAT(self):
+        vAT = []
+        # calculate adjacencies of the vertices
+        for vertexIndex in range(len(self._vertexList)):
+            adjacenciesOfVertex: Tuple
+            adjacenciesOfVertex = self._calculateVA(vertexIndex)
+            vAT.append(adjacenciesOfVertex)
+        
+        return vAT
+
+    ## ----- Adjacency Calculations of Single Vertex ----
     
-    def getAdjacentVerticesFromVertexIndex(self, vertexIndex):
-        return self._adjacencyList.vertexAdjacencyTable.adjacencies.getAdjacency(vertexIndex).adjacentVertices
+    def _calculateVA(self, vertexIndex):
+        """Calculate the adjacencies of a single vertex"""
+        adjacenciesOfVertex: Tuple
+        vVA = self._calculateVVA(vertexIndex)
+        vFA = self._calculateVFA(vertexIndex)
+        vEA = self._calculateVEA(vertexIndex)
+        adjacenciesOfVertex = (vVA, vFA, vEA)
+        
+        return adjacenciesOfVertex
+
+    def _calculateVVA(self, vertexIndex):
+        """Calculate the vertex adjacencies of a single vertex"""
+        vVA = []
+        
+        for edgeIndex in range(len(self._edgeList)):
+            edge = self._edgeList[edgeIndex]
+            if vertexIndex == edge[0]:
+                vVA.append(edge[1])
+            
+            elif vertexIndex == edge[1]:
+                vVA.append(edge[0])
+
+        return vVA
     
-    def getAdjacentEdgesFromVertexIndex(self, vertexIndex):
-        return self._adjacencyList.vertexAdjacencyTable.adjacencies.getAdjacency(vertexIndex).adjacentEdges
+    def _calculateVFA(self, vertexIndex):
+        """Calculate the face adjacencies of a single vertex"""
+        vFA = []
+        
+        for faceIndex in range(len(self._faceList)):
+            face = self._faceList[faceIndex]
+            
+            if vertexIndex in face:
+                vFA.append(faceIndex)
 
-    def setVertexList(self, vertexList):
-        vertexListClone = copy.deepcopy(vertexList)
-        self._vertexList = vertexListClone
+        return vFA
     
-    def setFaceList(self, faceList):
-        faceListClone = copy.deepcopy(faceList)
-        self._faceList = faceListClone
+    def _calculateVEA(self, vertexIndex):
+        """Calculate the edge adjacencies of a single vertex"""
+        vEA = []
 
-    def addVertex(self, vertex: Vec3d):
-        vertexList = self._vertexList
-        vertexClone = copy.deepcopy(vertex)
-        vertexList.append(vertexClone)
+        for edgeIndex in range(len(self._edgeList)):
+            edge = self._edgeList[edgeIndex]
+            
+            if vertexIndex == edge[0] or vertexIndex == edge[1]:
+                vEA.append(edgeIndex)
+        
+        return vEA
+    
+    # ---- Adjacency Table Calculations of Faces ----
 
-    def removeVertex(self, vertex: Vec3d):
-        vertexList = self._vertexList
-        vertexList.remove(vertex)
+    def _calculateFAT(self):
+        """Calculate the adjacencies of the faces"""
+        fAT = []
 
-    def popVertex(self, vertexIndex: Vec3d):
-        vertexList = self._vertexList
-        vertexList.pop(vertexIndex)
+        for faceIndex in range(len(self._faceList)):
+            adjacenciesOfFace: Tuple
+            adjacenciesOfFace = self._calculateFA(faceIndex)
+            fAT.append(adjacenciesOfFace)
 
-    def addFace(self, face: List[int]):
-        faceList = self._faceList
-        faceClone = copy.deepcopy(face)
-        faceList.append(faceClone)
+        return fAT
 
-    def addEdge(self, edge):
-        self._edgeList.append(edge)
+    ## ----- Adjacency Calculations of Single Face ----
+
+    def _calculateFA(self, faceIndex):
+        """Calculate the adjacencies of a single face"""
+        adjacenciesOfFace: Tuple
+        fVA = self._calculateFVA(faceIndex)
+        fFA = self._calculateFFA(faceIndex)
+        fEA = self._calculateFEA(faceIndex)
+        adjacenciesOfFace = (fVA, fFA, fEA)
+
+        return adjacenciesOfFace
+
+    def _calculateFVA(self, faceIndex):
+        """Calculate the vertex adjacencies of a single face"""
+        fVA = self._faceList[faceIndex]
+
+        return fVA
+    
+    def _calculateFFA(self, faceIndex):
+        """Calculate the face adjacencies of a single face"""
+        fFA = []
+        face = self._faceList[faceIndex]
+        
+        for otherFaceIndex in range(len(self._faceList)):
+            
+            if otherFaceIndex == faceIndex:
+                continue
+            
+            else:
+                otherFace = self._faceList[otherFaceIndex]
+                
+                for edgeIndex in range(len(self._edgeList)):
+                    edge = self._edgeList[edgeIndex]
+
+                    if edge[0] in face and edge[1] in face and edge[0] in otherFace and edge[1] in otherFace and otherFaceIndex not in fFA:
+
+                        fFA.append(otherFaceIndex)
+                            
+        return fFA
+        
+    def _calculateFEA(self, faceIndex):
+        """Calculate the edge adjacencies of a single face"""
+        fEA = []
+        face = self._faceList[faceIndex]
+
+        for edgeIndex in range(len(self._edgeList)):
+            edge = self._edgeList[edgeIndex]
+
+            if edge[0] in face and edge[1] in face:
+
+                fEA.append(edgeIndex)
+
+        return fEA
+    
+    # # ----- Calculate Edge Adjacency Table ----
+
+    def _calculateEAT(self):
+        """Calculate the adjacencies of the edges"""
+        eAT = []
+
+        for edgeIndex in range(len(self._edgeList)):
+            adjacenciesOfEdge: Tuple
+            adjacenciesOfEdge = self._calculateEA(edgeIndex)
+            eAT.append(adjacenciesOfEdge)
+
+        return eAT
+
+    ## ----- Adjacency Calculations of Single Edge ----
+
+    def _calculateEA(self, edgeIndex):
+        """Calculate the adjacencies of a single edge"""
+        adjacenciesOfEdge: Tuple
+        eVA = self._calculateEVA(edgeIndex)
+        eFA = self._calculateEFA(edgeIndex)
+        eEA = self._calculateEEA(edgeIndex)
+        adjacenciesOfEdge = (eVA, eFA, eEA)
+
+        return adjacenciesOfEdge
+
+    def _calculateEVA(self, edgeIndex):
+        """Calculate the vertex adjacencies of a single edge"""
+        eVA = []
+        edge = self._edgeList[edgeIndex]
+        eVA.append(edge[0])
+        eVA.append(edge[1])
+
+        return eVA
+    
+    def _calculateEFA(self, edgeIndex):
+        """Calculate the face adjacencies of a single edge"""
+        eFA = []
+        edge = self._edgeList[edgeIndex]
+        
+        for otherFaceIndex in range(len(self._faceList)):
+            face = self._faceList[otherFaceIndex]
+            
+            if otherFaceIndex in eFA:
+                continue
+
+            if edge[0] in face and edge[1] in face:
+                eFA.append(otherFaceIndex)
+                            
+        return eFA
+        
+    def _calculateEEA(self, edgeIndex):
+        """Calculate the edge adjacencies of a single edge"""
+        eEA = []
+        edge = self._edgeList[edgeIndex]
+
+        for otherEdgeIndex in range(len(self._edgeList)):
+            otherEdge = self._edgeList[otherEdgeIndex]
+            
+            if otherEdgeIndex == edgeIndex:
+                continue
+            
+            elif edge[0] in otherEdge or edge[1] in otherEdge:
+
+                for faceIndex in range(len(self._faceList)):
+                    face = self._faceList[faceIndex]
+
+                    if edge[0] in face and edge[1] in face and otherEdge[0] in face and otherEdge[1] in face:
+                        eEA.append(otherEdgeIndex)
+                        break
+                        
+
+        return eEA
+   
+
+    # ---- Matrix Operations ----
 
     def scale(self, sx: float, sy: float, sz: float):
         """Scale the object.
@@ -262,7 +344,7 @@ class Obj3d:
         self._compositeTranslationMatrix = translationMatrix.multiply(
             compositeTranslationMatrix)
 
-    def calculateCompositeTransformationMatrix(self):
+    def _calculateCompositeTransformationMatrix(self):
         cumulativeMatrix = Mat3d.identity()
         for val in TransformationOrder:
             if val is TransformationOrder.SCALE:
@@ -281,16 +363,14 @@ class Obj3d:
                     cumulativeMatrix)
 
             else:
-                raise KeyError(
-                    "There is no key '{key}' in TransformationOrder ENUM")
+                print(f"ERROR: There is no val '{val}' in TransformationOrder ENUM")
 
         compositeTransformationMatrix = cumulativeMatrix
         return compositeTransformationMatrix
 
     def calculateTransformedVertexList(self):
         vertexList = self._vertexList
-        compositeTransformationMatrix = self.calculateCompositeTransformationMatrix(
-        )
+        compositeTransformationMatrix = self._calculateCompositeTransformationMatrix()
         tempVertexList = []
         for vertex in vertexList:
             transformedVertex = vertex.transform(compositeTransformationMatrix)
@@ -298,162 +378,112 @@ class Obj3d:
         transformedVertexList = tempVertexList
         return transformedVertexList
 
-    def getFaceVertexList(self, singleFace):
-        faceVertexList = []
-        vertexList = self._vertexList
-        for vertexPointer in singleFace:
-            pointeeVertex = vertexList[vertexPointer]
-            faceVertexList.append(pointeeVertex)
-        return faceVertexList
-
-    def calculateMiddleVertex(self, vertexList):
-        sumVertex = Vec3d([0.0, 0.0, 0.0, 1.0])
-        vertexListLength = len(vertexList)
-        vertexListRange = range(vertexListLength)
-        for vertexIndex in vertexListRange:
-            currentVertex = vertexList[vertexIndex]
-            sumVertex += currentVertex
-        avarageCoefficient = 1 / vertexListLength
-        sumVertex.scale(avarageCoefficient)
-        return sumVertex
-
-    def calculateEdgeMiddleVertexList(self, singleFace):
-        baseVertexList = self.getFaceVertexList(singleFace)
-        cumulativeEdgeMiddleVertexList = []
-        baseVertexListLength = len(baseVertexList)
-        baseVertexListRange = range(baseVertexListLength)
-        for vertexIndex in baseVertexListRange:
-            previousVertexIndex = vertexIndex - 1
-            currentVertexIndex = vertexIndex
-            previousVertex = baseVertexList[previousVertexIndex]
-            currentVertex = baseVertexList[currentVertexIndex]
-            consecutiveVertexList = [previousVertex, currentVertex]
-            singleEdgeMiddleVertex = self.calculateMiddleVertex(consecutiveVertexList)
-            cumulativeEdgeMiddleVertexList.append(singleEdgeMiddleVertex)
-        return cumulativeEdgeMiddleVertexList
+    # ---- Catmull-Clark Subdivision Operations ----
+    def catmullClark(self, subdivisionAmount):
+        """Subdivide the object subdivisionAmount of times with catmull clark algorithm"""
+        obj3D = self
+        
+        for _ in range(subdivisionAmount):
+            obj3D = obj3D._catmullClarkOnce()
+        
+        return obj3D
     
-    def divideFace(self, singleFace):
-        # Vertex calculation
-        baseVertexList = self.getFaceVertexList(singleFace)
-        middleVertex = self.calculateMiddleVertex(baseVertexList)
-        edgeMiddleVertexList = self.calculateEdgeMiddleVertexList(singleFace)
-        dividedVertexList = baseVertexList + edgeMiddleVertexList + [middleVertex]
-        # Face calculation
-        rightBottomFace = [0, 5, 8, 4]
-        rightTopFace = [5, 1, 6, 8]
-        leftTopFace = [8, 6, 2, 7]
-        leftBottomFace = [4, 8, 7, 3]
-        # Append faces to cumulativeFaceList
-        cumulativeFaceList = []
-        cumulativeFaceList.append(rightBottomFace)
-        cumulativeFaceList.append(rightTopFace)
-        cumulativeFaceList.append(leftTopFace)
-        cumulativeFaceList.append(leftBottomFace)
-        dividedFaceList = cumulativeFaceList
-        #
-        return dividedVertexList, dividedFaceList
-    
-    def calibrateFaceList(self, moveAmount, faceList):
-        cumulativeFaceList = []
-        for singleFace in faceList:
-            calibratedFace = self.calibrateSingleFace(moveAmount, singleFace)
-            cumulativeFaceList.append(calibratedFace)
-        return cumulativeFaceList
+    def _catmullClarkOnce(self):
+        """Subdivide the object once with catmull clark algorithm"""
+        facePoints = self._calculateFacePoints()
+        edgePoints = self._calculateEdgePoints(facePoints)
+        cornerPoints = self._calculateCornerPoints(facePoints)
 
-    def calibrateSingleFace(self, moveAmount, singleFace):
-        cumulativeFace = []
-        singleFaceLength = len(singleFace)
-        singleFaceRange = range(singleFaceLength)
-        for vertexPointerIndex in singleFaceRange:
-            calibratedVertexPointer = singleFace[vertexPointerIndex] + moveAmount 
-            cumulativeFace.append(calibratedVertexPointer)
-        calibratedSingleFace = cumulativeFace
-        return calibratedSingleFace
-
-    def subdivideVertexListFaceList(self):
-        cumulativeVertexList = []
-        cumulativeFaceList = []
-        faceList = self.getFaceList()
-        for singleFace in faceList:
-            dividedVertexList, dividedFaceList = self.divideFace(singleFace)
-            cumulativeVertexListLength = len(cumulativeVertexList)
-            calibratedDividedFaceList = self.calibrateFaceList(cumulativeVertexListLength, dividedFaceList)
-            cumulativeVertexList += dividedVertexList
-            cumulativeFaceList += calibratedDividedFaceList
-        subdividedVertexList = cumulativeVertexList
-        subdividedFaceList = cumulativeFaceList
-        return subdividedVertexList, subdividedFaceList
-
-    def subdivision(self, subdivisionAmount):
-        mutantObj3D = copy.deepcopy(self)
-        subdivisionRange = range(subdivisionAmount)
-        for _ in subdivisionRange:
-            subdividedVertexList, subdividedFaceList = mutantObj3D.subdivideVertexListFaceList()
-            mutantObj3D.setVertexList(subdividedVertexList)
-            mutantObj3D.setFaceList(subdividedFaceList)
-        subdividedObject = mutantObj3D
-        return subdividedObject
-
-    def catmullClark(self, faces, edges):
-        """
-        To make catmull clark subdivision, 
+        newVertices = cornerPoints + facePoints + edgePoints
         
-        For each face add a face point, 
-            To find face point,
-            Find the average of all original points for the respective face
-                To find the average,
-                Sum all points and divide the number of points
+        newFaces = []
         
-        For each edge, add an edge point, 
-            To find the edge point,
-            Find the average of the two neighboring face points and its two original endpoints
-                To find the average,
-                Sum all points and divide the number of points
-        
-        For each original point (P), 
-        take the average (F) of all n (recently created) face points for faces touching P, 
-        and take the average (R) of all n edge midpoints for original edges touching P, 
-        where each edge midpoint is the average of its two endpoint vertices,
-        Move each original point to the new vertex point ( F + 2R + (n - 3)P ) / n -barycenter-
-        
-        Form edges and meshes in the new mesh
-            Connect each new face point to the new edge points of all original edges defining the original face
-            Connect each new vertex point to the new edge points of all original edges incident on the original vertex
-            Define new faces as enclosed by edges
-        """
-        self._adjacencyList.fillAdjacencyTable()
+        lCP = len(cornerPoints)
+        lFP = len(facePoints)
+        for vertexIndex in range(len(self._vertexList)):
+            vFA = self._vAT[vertexIndex][1]
+            vEA = self._vAT[vertexIndex][2]
 
-        newPoints = []
-        originalPoints = self._getVertexList()
-        lenOriginalPoints = len(originalPoints)
-        rangeOriginalPoints = range(lenOriginalPoints)
-        for aPointIndex in rangeOriginalPoints:
-            P = originalPoints[aPointIndex]
+            for adjacentFacePointIndex in vFA:
+                fEA = self._fAT[adjacentFacePointIndex][2]
+                sameEdgeIndexes = list(set(vEA).intersection(fEA))
+                newFace = [vertexIndex, lCP+lFP+sameEdgeIndexes[0], lCP+adjacentFacePointIndex, lCP+lFP+sameEdgeIndexes[1]]
+                newFaces.append(newFace)
+        
+        return Obj3d(newVertices, newFaces)
+
+    ## ---- Catmull-Clark Point Calculations ----
+
+    def _calculateFacePoints(self):
+        """Calculate face points for the catmull clark algorithm"""
+        facePoints = []
+
+        for faceIndex in range(len(self._faceList)):
+            face = self._faceList[faceIndex]
+            sumVertex = Vec3d([0, 0, 0, 1])
             
-            adjacentFaces = self.getAdjacentFacesFromVertexIndex(aPointIndex)
-            facePoints = []
-            for aFace in adjacentFaces:
-                faceMiddle = self._findFacePoint(aFace)
-                facePoints.append(faceMiddle)
+            for vertexIndex in face:
+                vertex = self._vertexList[vertexIndex]
+                sumVertex += vertex
             
-            adjacentEdges = self.getAdjacentFacesFromVertexIndex(aPointIndex)
-            edgePoints = []
-            for anEdge in adjacentEdges:
-                edgeMiddle = self._findEdgePoint(anEdge)
-                edgePoints.append(edgeMiddle)
+            sumVertex.scale(1/len(face))
+            facePoint = sumVertex
+
+            facePoints.append(facePoint)
+        
+
+        return facePoints
+
+    def _calculateEdgePoints(self, facePoints):
+        """Calculate edge points for the catmull clark algorithm"""
+        edgePoints = []
+
+        for edgeIndex in range(len(self._edgeList)):
             
-            F = self._avarageVertex(facePoints)
-            R = self._avarageVertex(edgePoints)
-            n = len(facePoints)
-            newPoint = (F + 2*R + (n - 3)*P) / n
-            newPoints.append(newPoint)
+            edge = self._edgeList[edgeIndex]
+            
+            sumVertex = self._vertexList[edge[0]] + self._vertexList[edge[1]]
+            eFA = self._eAT[edgeIndex][1]
+            
+            for faceIndex in eFA:
+                sumVertex += facePoints[faceIndex]
 
-    
-    def _findFacePoint(self, face):
-        pass
+            sumVertex.scale(1/(len(eFA) + 2))
+            edgePoint = sumVertex
+            edgePoints.append(edgePoint)
 
-    def _findEdgePoint(self, edge):
-        pass
+        return edgePoints
 
-    def _avarageVertex(self, vertexList):
-        pass
+    def _calculateCornerPoints(self, facePoints):
+        """Calculate corner points (new positions of old vertices) for the catmull clark algorithm"""
+        cornerPoints = []
+
+        for vertexIndex in range(len(self._vertexList)):
+
+            vFA = self._vAT[vertexIndex][1]
+            F = Vec3d([0, 0, 0, 1])
+            
+            for adjacentFacePointIndex in vFA:
+                F += facePoints[adjacentFacePointIndex]
+            F.scale(1/len(vFA)) 
+
+            vEA = self._vAT[vertexIndex][2]
+            R = Vec3d([0, 0, 0, 1])
+            
+            for adjacentEdgePointIndex in vEA:
+                edge = self._edgeList[adjacentEdgePointIndex]
+                linearEdgePoint = self._vertexList[edge[0]] + self._vertexList[edge[1]]
+                linearEdgePoint.scale(1/2)
+                R += linearEdgePoint
+            R.scale(1/len(vEA)) 
+            
+            P = self._vertexList[vertexIndex].clone()
+            
+            n = len(vFA)
+            R.scale(2)
+            P.scale(n-3)
+            cornerPoint = (F + R + P)
+            cornerPoint.scale(1/n)
+            cornerPoints.append(cornerPoint)
+
+        return cornerPoints

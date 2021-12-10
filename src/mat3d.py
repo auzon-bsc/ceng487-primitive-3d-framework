@@ -110,7 +110,7 @@ class Mat3d:
             tmp_mat = ([[c, -s, 0, 0], [s, c, 0, 0], [0, 0, 1, 0],
                         [0, 0, 0, 1]])
         else:
-            raise ValueError("Invalid axis")
+            print(f"ERROR: Invalid axis. Couldn't perform rotation")
 
         return Mat3d(tmp_mat)
 
@@ -140,7 +140,7 @@ class Mat3d:
             tmp_mat = ([[c, s, 0, 0], [-s, c, 0, 0], [0, 0, 1, 0],
                         [0, 0, 0, 1]])
         else:
-            raise ValueError("Invalid axis")
+            print(f"ERROR: Invalid axis. Couldn't perform rotation")
 
         return Mat3d(tmp_mat)
 

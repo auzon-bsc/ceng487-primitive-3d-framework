@@ -4,93 +4,81 @@
 # November 2021
 # Runs in Python 3.8.6
 
+from abc import ABC, abstractmethod
 import sys
 
-
-def parse_cl():
-    # total arguments
-    n = len(sys.argv)
-
-    # if total number of arguments is wrong
-    if n != 2:
-        raise ValueError(
-            "This program only takes 1 additional argument, which is the object file"
-        )
-
-    # assign filename
-    filename = sys.argv[1]
-
-    return filename
+from vec3d import Vec3d
 
 
-def parse_lines(filename: str):
-    # open file in read mode
-    f = open(filename, "r")
+class Parser(ABC):
+    def __init__(self):
+        filename = None
+        lines = None
 
-    # read all the lines
-    lines = f.readlines()
+    def parse_command_line(self):
+        # total arguments
+        n = len(sys.argv)
 
-    # close the file
-    f.close()
+        # if total number of arguments is wrong
+        if n != 2:
+            print("This program only takes 1 additional argument, which is the object file")
+            exit()
 
-    # return all the lines
-    return lines
+        # assign filename
+        filename = sys.argv[1]
+        self.filename = filename
 
+    def parse_lines(self):
+        # open file in read mode
+        f = open(self.filename, 'r')
 
-def parse_obj(lines: "list[str]"):
-    # vertex and face lists to be filled
-    vertices = []
-    faces = []
+        # read all the lines
+        lines = f.readlines()
 
-    # for each line in the file
-    for line in lines:
-        # split lines by whitespace
-        splitted_line = line.split()
-        # pop first char from the line
-        try:
-            first_char = splitted_line.pop(0)
-        # if line is empty pop raises error
-        # continue loop if error raises
-        except:
-            continue
-        # look the first char
-        # line represents name
-        if first_char == "o":
-            name = line[2:-1]
-        # line represents single vertex
-        elif first_char == "v":
-            # convert each string in the line to float list and add that list to vertex list
-            vertices.append([float(x) for x in splitted_line])
-            [vertex.append(1.0) for vertex in vertices]
-        # line represents single face
-        elif first_char == "f":
-            # convert each string in the line to int list and add that list to face list
-            faces.append([int(x) - 1 for x in splitted_line])
+        # close the file
+        f.close()
 
+        # return all the lines
+        self.lines = lines
+
+class ObjParser(Parser):
+    def __init__(self):
+        super().__init__()
+    
+    def parse_obj3d(self):
+        # vertex and face lists to be filled
+        vertices = []
+        faces = []
+
+        # for each line in the file
+        for line in self.lines:
+            # split lines by whitespace
+            splitted_line = line.split()
+            # pop first char from the line
+            try:
+                first_char = splitted_line.pop(0)
+            # if line is empty pop raises error
+            # continue loop if error raises
+            except Exception as exc:
+                continue
+            # look the first char
+            # line represents name
+            if first_char == "o":
+                name = line[2:-1]
+            # line represents single vertex
+            elif first_char == "v":
+                # convert each string in the line to float list and add that list to vertex list
+                vertices.append([float(x) for x in splitted_line])
+            # line represents single face
+            elif first_char == "f":
+                # convert each string in the line to int list and add that list to face list
+                faces.append([int(x) - 1 for x in splitted_line])
+        [vertex.append(1.0) for vertex in vertices]
+
+        for vertexIndex in range(len(vertices)):
+            vertices[vertexIndex] = Vec3d(vertices[vertexIndex])
+            
         # find the edges of the object
-        edges = findObjectEdges(faces)
+        return vertices, faces
 
-    return vertices, faces, edges
-
-def findObjectEdges(faces):
-    objectEdges = []
-    for face in faces:
-        faceEdges = findFaceEdges(face)
-        objectEdges += faceEdges
-    return objectEdges
-
-def findFaceEdges(face):
-    faceEdges = []
-    # find the edges of the face
-    lenFace = len(face)
-    rangeFace = range(lenFace)
-    for i in rangeFace:
-        startVertex = face[i]
-        endVertex = face[(i + 1) % lenFace]
-        edge = createEdge(startVertex, endVertex)
-        faceEdges.append(edge)
-    return faceEdges
-
-def createEdge(startVertex, endVertex):
-    # create an edge
-    return startVertex, endVertex
+    
