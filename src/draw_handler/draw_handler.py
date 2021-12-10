@@ -15,12 +15,16 @@ class DrawHandler:
         """
         # begin drawing quads
         glBegin(GL_QUADS)
-        # for every vertex index in list face
-        for vertex in vertexList:
-            # determine color with coordinates
-            glColor3f(vertex.x, vertex.y, vertex.z)
-            # send a vertex of the face to opengl
-            glVertex3f(vertex.x, vertex.y, vertex.z)
+        # set color to white
+        glColor3f(1, 1, 1)
+        # draw first vertex
+        glVertex3f(vertexList[0].x, vertexList[0].y, vertexList[0].z)
+        # draw second vertex
+        glVertex3f(vertexList[1].x, vertexList[1].y, vertexList[1].z)
+        # draw third vertex
+        glVertex3f(vertexList[2].x, vertexList[2].y, vertexList[2].z)
+        # draw last vertex
+        glVertex3f(vertexList[3].x, vertexList[3].y, vertexList[3].z)
         # end drawing quads
         glEnd()
 
@@ -42,7 +46,7 @@ class DrawHandler:
     @staticmethod
     def drawLine(vertex1, vertex2):
         glBegin(GL_LINES)
-        glColor3f(1, 0, 0)
+        glColor3f(0, 0, 0)
         glVertex3f(vertex1.x, vertex1.y, vertex1.z)
         glVertex3f(vertex2.x, vertex2.y, vertex2.z)
         glEnd()
@@ -68,21 +72,26 @@ class DrawHandler:
         lineVertexList = []
         for vertex in vertexList:
             vertexClone = vertex.clone()
-            offsetVertex = Vec3d([0, 0, 0.01, 1])
+            offsetVertex = Vec3d([0, 0, 0.03, 1])
             lineVertex = vertexClone + offsetVertex
             lineVertexList.append(lineVertex)
         for face in faceList:
             DrawHandler.drawMultipleLines(lineVertexList, face)
 
     @staticmethod
+    def drawPoints(vertexList):
+        glBegin(GL_POINTS)
+        for vertex in vertexList:
+            glVertex3f(vertex.x, vertex.y, vertex.z)
+        glEnd()
+
+    @staticmethod
     def drawText(text, posX, posY):
         # Color red for text
         glColor3f(1, 0, 0.3)
         # Position text
-        # glLoadIdentity()
-        # glRasterPos3f(-0.55, -0.41, -1)
         glWindowPos2i(posX, posY)
-        # Print each character
+        # draw each character
         for c in text:
             glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(c))
 
@@ -90,5 +99,4 @@ class DrawHandler:
     def drawTextList(textList, posX, posY):
         for text in textList:
             DrawHandler.drawText(text, posX, posY)
-            posX = posX
             posY = posY - 18

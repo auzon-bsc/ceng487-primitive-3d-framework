@@ -20,25 +20,21 @@ class InputHandler:
         if asciiValue == 27:
             # leave opengl
             glutLeaveMainLoop()
-            return
 
-        if 48 <= asciiValue <= 57:
+        elif 48 <= asciiValue <= 57:
             topRowNumber = asciiValue - 48
             linkedScene = self._linkedScene
             linkedScene.selectObject(topRowNumber)
-            return
     
         # Minus
         elif asciiValue == 45:
             linkedScene = self._linkedScene
             linkedScene.decrementSubdivision()
-            return
         
         # Plus
         elif asciiValue == 43:
             linkedScene = self._linkedScene
             linkedScene.incrementSubdivision()
-            return
 
         else:
             print(f"Pressed key doesn't do anything!(value is: {key})")
@@ -55,3 +51,16 @@ class InputHandler:
             rotationAxis = "y"
             rotatonDegree = rotationSpeed * arrowKeyFactor
             firstObject.rotate(rotationAxis, rotatonDegree)
+
+        # Up and down arrow keys
+        elif key == 101 or key == 103:
+            arrowKeyFactor = 102 - key
+            linkedScene = self._linkedScene
+            firstObject = linkedScene.getObj3D(0)
+            rotationSpeed = -5
+            rotationAxis = "x"
+            rotatonDegree = rotationSpeed * arrowKeyFactor
+            firstObject.rotate(rotationAxis, rotatonDegree)
+
+        else:
+            print(f"Pressed key doesn't do anything!(value is: {key})")

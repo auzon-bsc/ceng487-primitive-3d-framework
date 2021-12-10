@@ -1,8 +1,10 @@
+import copy
 from draw_handler.draw_handler import DrawHandler
 from obj3d import Obj3d
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 
+rotate = 1
 
 class Scene:
     """
@@ -19,6 +21,7 @@ class Scene:
         Initialize empty Scene object
         """
         self._objectList = []
+        self._objectsToDraw = []
         self._textList = []
         self._parameterDict = {
             'objectToDraw': 0,
@@ -33,6 +36,8 @@ class Scene:
         subdivisionAmount = parameterDict['subdivisionAmount']
         incrementedValue = subdivisionAmount + 1
         self.setParameter('subdivisionAmount', incrementedValue)
+        subdivided = self._objectList[self._parameterDict['objectToDraw']].catmullClark(incrementedValue)
+        self._objectsToDraw[self._parameterDict['objectToDraw']] = subdivided
 
     def decrementSubdivision(self):
         parameterDict = self._parameterDict
@@ -40,6 +45,8 @@ class Scene:
         if subdivisionAmount > 0:
             decrementedValue = subdivisionAmount - 1
             self.setParameter('subdivisionAmount', decrementedValue)
+        subdivided = self._objectList[self._parameterDict['objectToDraw']].catmullClark(decrementedValue)
+        self._objectsToDraw[self._parameterDict['objectToDraw']] = subdivided
 
     def addText(self, text):
         textList = self._textList
@@ -53,6 +60,7 @@ class Scene:
             obj3D (Obj3d): 3D object to add
         """
         self._objectList.append(obj3D)
+        self._objectsToDraw.append(copy.deepcopy(obj3D))
 
     def removeObj3D(self, obj3D):
         """
@@ -90,24 +98,11 @@ class Scene:
         Returns:
             Obj3d: 3D object at the given index
         """
-        wantedObj3D = self._objectList[index]
+        wantedObj3D = self._objectsToDraw[index]
         return wantedObj3D
 
-    def getVertices(self, index):
-        wantedObj3D: Obj3d
-
-        wantedObj3D = self.getObj3D(index)
-        wantedVertices = wantedObj3D.transform()
-        return wantedVertices
-
-    def getFaces(self, index):
-        wantedObj3D: Obj3d
-
-        wantedObj3D = self.getObj3D(index)
-        wantedFaces = wantedObj3D.faces()
-        return wantedFaces
-
     def drawScene(self):
+        global rotate
         object: Obj3d
 
         # Clear The Screen And The Depth Buffer
@@ -117,16 +112,14 @@ class Scene:
         glLoadIdentity()
 
         # Move Into The Screen
-        glTranslatef(0.0, 0.0, -10.0)
-
-        # Draw all objects
-        for object in self._objectList:
-            subdividedObject = object.subdivision(self._parameterDict['subdivisionAmount'])
-            subdividedObject.rotate("x", 0.1)
-            subdividedTransformedVertexList = subdividedObject.calculateTransformedVertexList()
-            subdividedObjectFaceList = subdividedObject.getFaceList()
-            DrawHandler.drawObjectQuad(subdividedTransformedVertexList, subdividedObjectFaceList)
-            DrawHandler.drawObjectLines(subdividedTransformedVertexList, subdividedObjectFaceList)
+        glTranslatef(0.0, 0.0, -10)
+        # Draw all selected objects
+        for object in self._objectsToDraw:
+            transformedVertexList = object.calculateTransformedVertexList()
+            faceList = object.getFaceList()
+            DrawHandler.drawObjectQuad(transformedVertexList, faceList)
+            DrawHandler.drawObjectLines(transformedVertexList, faceList)
+            # DrawHandler.drawPoints(subdividedTransformedVertexList)
 
         # Draw text
         text = "Subdivision number: "

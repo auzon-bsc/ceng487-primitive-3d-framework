@@ -1,4 +1,4 @@
-# CENG 487 Assignment4 by
+# CENG 487 Assignment5 by
 # Oğuzhan Özer
 # StudentId: 260201039
 # November 2021
@@ -15,21 +15,14 @@ from input_handler.input_handler import InputHandler
 from obj_parser.obj_parser import *
 
 def main():
-    # get filename
-    filename = parse_cl()
-
-    # parse file to lines
-    lines = parse_lines(filename)
-
-    # parse object from the lines
-    vertices, faces = parse_obj(lines)
+    # parse object from the file
+    parser = ObjParser()
+    parser.parse_command_line()
+    parser.parse_lines()
+    vertices, faces = parser.parse_obj3d()
 
     # create object from vertices and faces lists
-    obj3D = Obj3d()
-    for vertex in vertices:
-        obj3D.addVertex(Vec3d(vertex))
-    for face in faces:
-        obj3D.addFace(face)
+    obj3D = Obj3d(vertices, faces)
 
     # Scene
     scene = Scene()
@@ -37,6 +30,7 @@ def main():
     scene.addText("Press 'ESC' to quit.")
     scene.addText("Press '+' to increase subdivisions.")
     scene.addText("Press '-' to decrease subdivisions.")
+    scene.addText("Press 'Arrow Keys' to rotate the objects.")
 
     # Initialize glut
     glutInit(sys.argv)

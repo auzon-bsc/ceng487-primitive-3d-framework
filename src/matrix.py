@@ -10,7 +10,7 @@ class Matrix:
         matrix_arr = []
         for numbers1D in numbers2D:
             if len(numbers1D) != n:
-                raise IndexError("The length of the rows are not equal")
+                print(f"The length of the rows are not equal")
             else:
                 row = []
                 for number in numbers1D:
@@ -65,7 +65,7 @@ class Matrix:
         c_ind (int): Column index
     """
         if (r_ind) > self.m or (c_ind) > self.n:
-            raise IndexError("Invalid row and column locations")
+            print(f"ERROR: Invalid row and column locations")
         else:
             self.matrix_arr[r_ind][c_ind] = num
 
@@ -79,9 +79,7 @@ class Matrix:
         Matrix: Multiplied matrix
     """
         if (self.n != other.m):
-            raise IndexError(
-                "You cannot multiply %d column matrix with %d row matrix" %
-                (self.n, other.m))
+            print(f"ERROR: You cannot multiply {self.n} column matrix with {other.m} row matrix")
         else:
             tmp_m = self.m
             tmp_n = other.n
