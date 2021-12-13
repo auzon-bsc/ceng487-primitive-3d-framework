@@ -44,7 +44,7 @@ class View:
 
             # model matrix
             modelLocation = glGetUniformLocation( node.shader.programID, "model" )
-            glUniformMatrix4fv(modelLocation, 1, GL_FALSE, node.getModelMatrix())
+            glUniformMatrix4fv(modelLocation, 1, GL_FALSE, node.obj2World.asNumpy())
 
             # view matrix
             viewLocation = glGetUniformLocation( node.shader.programID, "view")

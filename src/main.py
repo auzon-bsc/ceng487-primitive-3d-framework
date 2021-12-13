@@ -23,7 +23,7 @@ grid.setWireWidth(1)
 
 # create camera
 camera = Camera()
-camera.createView( 	Point3f(10.0, 10.0, 10.0), \
+camera.createView( 	Point3f(0.0, 0.0, 10.0), \
                     Point3f(0.0, 0.0, 0.0), \
                     Vector3f(0.0, 1.0, 0.0) )
 camera.setNear(1)
@@ -51,14 +51,14 @@ def main():
     global width, height
     
     glutInit(sys.argv)
-
+    
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH)
-
+    
     glutInitWindowSize(width, height)
     glutInitWindowPosition(200, 200)
-
+    
     window = glutCreateWindow("CENG487 Assigment Template")
-
+    
     # define callbacks
     glutDisplayFunc( view.draw )
     glutIdleFunc( view.idleFunction )
