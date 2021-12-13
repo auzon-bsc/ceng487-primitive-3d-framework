@@ -62,8 +62,7 @@ class _Shape:
         # bind VBO to gl array buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO) 
         # set the data
-        elementSize = numpy.dtype(numpy.uintc).itemsize
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, len(self.faces) * elementSize, self.faces, GL_STATIC_DRAW ) 
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, self.faces, GL_STATIC_DRAW ) 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
         # reset binding
         glBindBuffer(GL_ARRAY_BUFFER, 0)        
@@ -79,6 +78,15 @@ class _Shape:
                             0.0, 1.0, 0.0, 0.0,
                             0.0, 0.0, 1.0, 0.0,
                             self.position[0], self.position[1], self.position[2], 1.0], dtype='float32')
+
+    def _toNumpy(self, listOfObjects):
+        tmpList = []
+        
+        for obj in listOfObjects:
+            objAttributes = obj.toList()
+            tmpList += objAttributes
+  
+        return numpy.array(tmpList, dtype='float32')
 
     def calcBboxObj(self):
         for vertex in self.vertices:
@@ -142,15 +150,6 @@ class _Shape:
         translate = Matrix.T(x, y, z)
         self.obj2World = self.obj2World.product(translate)
 
-    def _toNumpy(self, listOfObjects):
-        tmpList = []
-        
-        for obj in listOfObjects:
-            objAttributes = obj.toList()
-            tmpList += objAttributes
-  
-        return numpy.array(tmpList, dtype='float32')
-
 class Cube(_Shape):
     def __init__(self, name, xSize, ySize, zSize, xDiv, yDiv, zDiv):
         vertices = []
@@ -178,7 +177,7 @@ class Cube(_Shape):
 
         # colors
         colors = []
-        for _ in range (0, len(faces) + 1):
+        for _ in range (len(vertices)):
             r = random.uniform(0, 1)
             g = random.uniform(0, 1)
             b = random.uniform(0, 1)

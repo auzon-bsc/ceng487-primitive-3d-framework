@@ -33,7 +33,7 @@ class View:
     def draw(self):
 
         glClearColor(self.bgColor.r, self.bgColor.g, self.bgColor.b, self.bgColor.a)
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         for node in self.scene.nodes:
             # use the program of the object
@@ -64,21 +64,22 @@ class View:
 
             # setup vertex attributes
             vertexDim = 4
-            
+            colorDim = 4
+
             # vertex pos
             offset = 0
             glVertexAttribPointer(0, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
             glEnableVertexAttribArray(0)
 
             # vertex color
-            # offset += elementSize * vertexDim * len(node.vertices)
-            # glVertexAttribPointer(1, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
-            # glEnableVertexAttribArray(1)
+            offset += (elementSize * len(node.vertices))
+            glVertexAttribPointer(1, colorDim, GL_FLOAT, GL_FALSE, elementSize * colorDim, ctypes.c_void_p(offset))
+            glEnableVertexAttribArray(1)
            
             # vertex uv
-            # offset += elementSize * vertexDim * 6 # len(node.colors)
-            # glVertexAttribPointer(2, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
-            # glEnableVertexAttribArray(2)
+            offset += elementSize * len(node.colors)
+            glVertexAttribPointer(2, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
+            glEnableVertexAttribArray(2)
 
             # draw arrays as quads
             # glDrawArrays(GL_QUADS, 0, len(node.vertices))
@@ -89,8 +90,8 @@ class View:
 
             # reset to defaults
             glDisableVertexAttribArray(0)
-            # glDisableVertexAttribArray(1)
-            # glDisableVertexAttribArray(2)
+            glDisableVertexAttribArray(1)
+            glDisableVertexAttribArray(2)
             glBindBuffer(GL_ARRAY_BUFFER, 0)
             glUseProgram(0)
 
