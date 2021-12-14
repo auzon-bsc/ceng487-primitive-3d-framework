@@ -1,3 +1,8 @@
+# CENG 487 Assignment6 by
+# Oğuzhan Özer
+# StudentId:260201039
+# December 2021
+
 import sys
 import numpy
 import math

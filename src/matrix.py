@@ -1,8 +1,3 @@
-#!
-# CENG 487 Assignment# by
-# Coskun Yerli
-# StudentId:200201004
-# 11.2016
 from math import pi,sin,cos,sqrt,acos
 from vector import *
 import numpy
