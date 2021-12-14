@@ -31,71 +31,43 @@ class View:
         # newly added
 
     def draw(self):
-
+        # set color to scene background color
         glClearColor(self.bgColor.r, self.bgColor.g, self.bgColor.b, self.bgColor.a)
+        
+        # clear color and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+        # draw grid
+        glUseProgram(self.grid.programID)
+        # set uniform view matrix of the shader
+        viewLocation = glGetUniformLocation( self.grid.programID, "view")
+        glUniformMatrix4fv(viewLocation, 1, GL_FALSE, self.camera.getViewMatrix())
+
+        # set uniform projection matrix of the shader
+        projLocation = glGetUniformLocation( self.grid.programID, "proj")
+        glUniformMatrix4fv(projLocation, 1, GL_FALSE, self.camera.getProjMatrix())
+        self.grid.draw()
+
+        # draw nodes
         for node in self.scene.nodes:
-            # use the program of the object
-            node.initProgram()
-            glUseProgram(node.shader.programID)
+            # use the shader linked to the object
+            glUseProgram(node.programID)
             
-            # get matrices and bind them to vertex shader locations
-
-            # model matrix
-            modelLocation = glGetUniformLocation( node.shader.programID, "model" )
-            glUniformMatrix4fv(modelLocation, 1, GL_FALSE, node.obj2World.asNumpy())
-
-            # view matrix
-            viewLocation = glGetUniformLocation( node.shader.programID, "view")
+            # set uniform view matrix of the shader
+            viewLocation = glGetUniformLocation( node.programID, "view")
             glUniformMatrix4fv(viewLocation, 1, GL_FALSE, self.camera.getViewMatrix())
 
-            # projection matrix
-            projLocation = glGetUniformLocation( node.shader.programID, "proj")
+            # set uniform projection matrix of the shader
+            projLocation = glGetUniformLocation( node.programID, "proj")
             glUniformMatrix4fv(projLocation, 1, GL_FALSE, self.camera.getProjMatrix())
-
-            # VBO
-            node.initializeVBO()
-
-            # reset our vertex buffer
-            glBindBuffer(GL_ARRAY_BUFFER, node.VBO)
-
-            elementSize = numpy.dtype(numpy.float32).itemsize
-
-            # setup vertex attributes
-            vertexDim = 4
-            colorDim = 4
-
-            # vertex pos
-            offset = 0
-            glVertexAttribPointer(0, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
-            glEnableVertexAttribArray(0)
-
-            # vertex color
-            offset += (elementSize * len(node.vertices))
-            glVertexAttribPointer(1, colorDim, GL_FLOAT, GL_FALSE, elementSize * colorDim, ctypes.c_void_p(offset))
-            glEnableVertexAttribArray(1)
-           
-            # vertex uv
-            offset += elementSize * len(node.colors)
-            glVertexAttribPointer(2, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
-            glEnableVertexAttribArray(2)
-
-            # draw arrays as quads
-            # glDrawArrays(GL_QUADS, 0, len(node.vertices))
-
-            # draw elements
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, node.EBO)
-            glDrawElements(GL_QUADS, len(node.faces), GL_UNSIGNED_INT, None)
-
-            # reset to defaults
-            glDisableVertexAttribArray(0)
-            glDisableVertexAttribArray(1)
-            glDisableVertexAttribArray(2)
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
+            
+            # draw the object
+            node.draw()
+            
+            # reset the shader
             glUseProgram(0)
 
-        # swap the buffers
+        # swap the buffers to show it to screen
         glutSwapBuffers()
 
 
@@ -161,7 +133,9 @@ class View:
         glViewport(0, 0, width, height)		# Reset The Current Viewport And Perspective Transformation
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPerspective(self.camera.fov, float(width)/float(height), self.camera.near, self.camera.far)
+        aspect = float(width)/float(height)
+        self.camera.aspect = aspect
+        gluPerspective(self.camera.fov, aspect, self.camera.near, self.camera.far)
         glMatrixMode(GL_MODELVIEW)
 
 
@@ -170,12 +144,16 @@ class View:
         if args[0] == GLUT_KEY_LEFT:
             self.camera.eye.x -= .5
             self.camera.center.x -= .5
-            self.camera.computeFrame()
+            self.camera.computeCamSpace()
+            self.setCameraIsMoving( True )
 
         if args[0] == GLUT_KEY_RIGHT:
             self.camera.eye.x += .5
             self.camera.center.x += .5
-            self.camera.computeFrame()
+            self.camera.computeCamSpace()
+            self.setCameraIsMoving( True )
+
+        
 
 
     def mousePressed(self, button, state, x, y):
@@ -248,6 +226,8 @@ class Grid(_Shape):
             faces.append([id1, id1 + 1, id2 + 1, id2])
 
         colors = []
+        for _ in range(len(vertices)):
+            colors.append(ColorRGBA(0.3, 0.3, 0.3, 1.0))
 
         UVs = []
 
@@ -286,38 +266,37 @@ class Grid(_Shape):
 
     def draw(self):
         _Shape.draw(self)
-
         # paint on top
-        glDisable(GL_DEPTH_TEST)
-        # no lighting
-        #glDisable(GL_LIGHTING)
+        # glDisable(GL_DEPTH_TEST)
+        # # no lighting
+        # #glDisable(GL_LIGHTING)
 
-        # draw the main axises wider and in a different color
-        glLineWidth(self.axisWidth)
+        # # draw the main axises wider and in a different color
+        # glLineWidth(self.axisWidth)
 
-        # draw x axis
-        glBegin(GL_LINES)
-        glColor3f(self.xAxisColor.r, self.xAxisColor.g, self.xAxisColor.b)
-        glVertex3f(-self.xSize, 0, 0)
-        glVertex3f(self.xSize, 0, 0)
-        glEnd()
+        # # draw x axis
+        # glBegin(GL_LINES)
+        # glColor3f(self.xAxisColor.r, self.xAxisColor.g, self.xAxisColor.b)
+        # glVertex3f(-self.xSize, 0, 0)
+        # glVertex3f(self.xSize, 0, 0)
+        # glEnd()
 
-        # draw z axis
-        glBegin(GL_LINES)
-        glColor3f(self.zAxisColor.r, self.zAxisColor.g, self.zAxisColor.b)
-        glVertex3f(0, 0, -self.zSize)
-        glVertex3f(0, 0, self.zSize)
-        glEnd()
+        # # draw z axis
+        # glBegin(GL_LINES)
+        # glColor3f(self.zAxisColor.r, self.zAxisColor.g, self.zAxisColor.b)
+        # glVertex3f(0, 0, -self.zSize)
+        # glVertex3f(0, 0, self.zSize)
+        # glEnd()
 
-        # draw origin
-        glPointSize(self.originRadius)
+        # # draw origin
+        # glPointSize(self.originRadius)
 
-        glBegin(GL_POINTS)
-        glColor3f(self.originColor.r, self.originColor.g, self.originColor.b)
-        glVertex3f(0, 0, 0)
-        glEnd()
+        # glBegin(GL_POINTS)
+        # glColor3f(self.originColor.r, self.originColor.g, self.originColor.b)
+        # glVertex3f(0, 0, 0)
+        # glEnd()
 
-        # enaable depth based merge
-        glEnable(GL_DEPTH_TEST)
+        # # enaable depth based merge
+        # glEnable(GL_DEPTH_TEST)
         # enable lighting
         #glEnable(GL_LIGHTING)

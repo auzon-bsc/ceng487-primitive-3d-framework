@@ -41,11 +41,11 @@ class _Shape:
         print(f"\ncolors {self.colors}")
         print(f"\nUVs {self.UVs}")
         print(f"\nfaces {self.faces}")
-        # VBO 
+        # vertex and element buffer ojbjects
         self.VBO = None
         self.EBO = None
-        # shader
-        self.shader = Shader()
+        # shader programID
+        self.programID = None
 
     def initializeVBO(self):
         # generate VBO id
@@ -69,9 +69,6 @@ class _Shape:
         # set the VBO id and index id
         self.VBO = VBO
         self.EBO = EBO
-
-    def initProgram(self):
-        self.shader.initProgram()
 
     def getModelMatrix(self):
         return numpy.array([1.0, 0.0, 0.0, 0.0,
@@ -106,45 +103,74 @@ class _Shape:
 
 
     def draw(self):
-        glClearColor(0.0, 0.0, 0.0, 0.0)
-        glClear(GL_COLOR_BUFFER_BIT)
+        # 
+        if self.drawStyle is DrawStyle.WIRE:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            glLineWidth(self.wireWidth)
 
-        # use shader
-        glUseProgram(self.shader.programID)
+        # set uniform model matrix of the shader
+        modelLocation = glGetUniformLocation( self.programID, "model" )
+        glUniformMatrix4fv(
+            modelLocation,              #  
+            1,                          #
+            GL_FALSE,                   #
+            self.obj2World.asNumpy()    # model matrix
+        )
+        
+        # initialize our vertex buffer object
+        self.initializeVBO()
+        
+        # bind our vertex buffer
+        glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
 
-        # get matrices and bind them to vertex shader locations
-        modelLocation = glGetUniformLocation( self.shader.programID, "model" )
-        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, getModelMatrix())
-        viewLocation = glGetUniformLocation(self.shader.programID, "view")
-        glUniformMatrix4fv(viewLocation, 1, GL_FALSE, getViewMatrix())
-        projLocation = glGetUniformLocation(self.shader.programID, "proj")
-        glUniformMatrix4fv(projLocation, 1, GL_FALSE, getProjMatrix(camNear, camFar, camAspect, camFov))
-
-        # reset our vertex buffer
-        glBindBuffer(GL_ARRAY_BUFFER, VBO)
+        # get how many bytes one axis value of our hcoordinates 
+        # (i.e x axis = 1 * float32 = 4 bytes)
         elementSize = numpy.dtype(numpy.float32).itemsize
 
         # setup vertex attributes
-        offset = 0
+        vertexDim = 4       # (x, y, z, w)
+        colorDim = 4        # (r, g, b, a)
+        uvDim = 2           # (u, v)
 
-        # location 0
-        glVertexAttribPointer(0, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
+        # enable vertex position attribute 
         glEnableVertexAttribArray(0)
-
-        # define colors which are passed in location 1 - they start after all positions and has four floats consecutively
-        offset += elementSize * vertexDim * nVertices
-        glVertexAttribPointer(1, vertexDim, GL_FLOAT, GL_FALSE, elementSize * vertexDim, ctypes.c_void_p(offset))
+        # set the starting position of the vertex attribute
+        offset = 0
+        glVertexAttribPointer(
+            0, 
+            vertexDim, 
+            GL_FLOAT, 
+            GL_FALSE, 
+            elementSize * vertexDim,        # stride
+            ctypes.c_void_p(offset)         # starting position
+        )
+        
+        # enable vertex color attribute
         glEnableVertexAttribArray(1)
+        # set the starting position of the color attribute
+        offset += (elementSize * len(self.vertices))
+        glVertexAttribPointer(1, colorDim, GL_FLOAT, GL_FALSE, elementSize * colorDim, ctypes.c_void_p(offset))
+        
+        # enable vertex uv pos attribute
+        glEnableVertexAttribArray(2)
+        # set the starting position of the uv attribute
+        offset += elementSize * len(self.colors)
+        glVertexAttribPointer(2, vertexDim, GL_FLOAT, GL_FALSE, elementSize * uvDim, ctypes.c_void_p(offset))
+        
+        # draw elements (indexed draw / drawing according to faces)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.EBO)
+        glDrawElements(GL_QUADS, len(self.faces), GL_UNSIGNED_INT, None)
 
-        glDrawArrays(GL_TRIANGLES, 0, nVertices)
-
-        # reset to defaults
+        # reset attribute arrays
         glDisableVertexAttribArray(0)
         glDisableVertexAttribArray(1)
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
-        glUseProgram(0)
+        glDisableVertexAttribArray(2)
 
-        glutSwapBuffers()
+        # reset binded buffer
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # reset polygon mode
+        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL )
 
     def Translate(self, x, y, z):
         translate = Matrix.T(x, y, z)

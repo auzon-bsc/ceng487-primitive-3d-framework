@@ -270,23 +270,25 @@ class Camera:
 
 
     def getViewMatrix(self):
+        self.computeCamSpace()
         # assemble a rotation matrix from camera axises
         rotMat = numpy.array([	self.cameraX.x, self.cameraY.x, -self.cameraZ.x, 0.0,
                                 self.cameraX.y, self.cameraY.y, -self.cameraZ.y, 0.0,
                                 self.cameraX.z, self.cameraY.z, -self.cameraZ.z, 0.0,
                                 0.0, 0.0, 0.0, 1.0], dtype='float32').reshape(4,4)
         # assemble a transformation matrix from the position of the camera
-        position = self.center - self.eye
         traMat = numpy.array([	1.0, 0.0, 0.0, 0.0,
                                 0.0, 1.0, 0.0, 0.0,
                                 0.0, 0.0, 1.0, 0.0,
-                                position.x, position.y, position.z, 1.0], dtype='float32').reshape(4,4)
+                                -self.eye.x, -self.eye.y, -self.eye.z, 1.0], dtype='float32').reshape(4,4)
         # multiply the matrices
         return traMat.dot(rotMat)
 
 
     # matrix stuff
     def getProjMatrix(self):
+        self.computeCamSpace()
+
         f = numpy.reciprocal(numpy.tan(numpy.divide(numpy.deg2rad(self.fov), 2.0)))
         base = self.near - self.far
         term_0_0 = numpy.divide(f, self.aspect)

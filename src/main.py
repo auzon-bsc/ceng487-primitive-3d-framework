@@ -6,6 +6,7 @@ from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
+from shader import *
 from vector import *
 from matrix import *
 from shapes import *
@@ -19,7 +20,7 @@ width, height = 640, 480
 # create grid
 grid = Grid("grid", 10, 10)
 grid.setDrawStyle(DrawStyle.WIRE)
-grid.setWireWidth(1)
+grid.setWireWidth(0.1)
 
 # create camera
 camera = Camera()
@@ -46,6 +47,8 @@ cube2 = Cube("cube", 1.5, 1.5, 1.5, 10, 10, 10)
 cube2.Translate( -2, 0, 0)
 scene.add(cube2)
 
+shader = Shader()
+
 def main():
     global view
     global width, height
@@ -59,6 +62,12 @@ def main():
     
     window = glutCreateWindow("CENG487 Assigment Template")
     
+    # init shader
+    shader.initProgram()
+    cube1.programID = shader.programID
+    cube2.programID = shader.programID
+    grid.programID = shader.programID
+
     # define callbacks
     glutDisplayFunc( view.draw )
     glutIdleFunc( view.idleFunction )
