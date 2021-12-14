@@ -51,30 +51,6 @@ class HCoord:
         return other.unit() * (self.len() * self.cosa(other))
 
 
-    def Rx(self,x):
-        m = Matrix.create([1,0,0,0,0,cos(x),-sin(x),0,0,sin(x),cos(x),0,0,0,0,1])
-        return m.vecmul(self)
-
-
-    def Ry(self, x):
-        m = Matrix.create([cos(x), 0, sin(x), 0, 0, 1, 0,0, -sin(x), 0, cos(x), 0, 0, 0, 0, 1])
-        return m.vecmul(self)
-
-
-    def Rz(self, x):
-        m = Matrix.create([cos(x), -sin(x), 0, 0, sin(x), cos(x), 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
-        return m.vecmul(self)
-
-
-    def S(self,scalar):
-        return self * scalar
-
-
-    def T(self,x,y,z):
-        m = Matrix.create([1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1])
-        return m.vecmul(self)
-
-
     def __add__(self, other):
         x = 1.0 * self.x + other.x
         y = 1.0 * self.y + other.y

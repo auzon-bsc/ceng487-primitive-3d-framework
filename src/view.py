@@ -28,7 +28,6 @@ class View:
         self.event = Event()
         self.mouseX = -1
         self.mouseY = -1
-        # newly added
 
     def draw(self):
         # set color to scene background color
@@ -266,37 +265,3 @@ class Grid(_Shape):
 
     def draw(self):
         _Shape.draw(self)
-        # paint on top
-        # glDisable(GL_DEPTH_TEST)
-        # # no lighting
-        # #glDisable(GL_LIGHTING)
-
-        # # draw the main axises wider and in a different color
-        # glLineWidth(self.axisWidth)
-
-        # # draw x axis
-        # glBegin(GL_LINES)
-        # glColor3f(self.xAxisColor.r, self.xAxisColor.g, self.xAxisColor.b)
-        # glVertex3f(-self.xSize, 0, 0)
-        # glVertex3f(self.xSize, 0, 0)
-        # glEnd()
-
-        # # draw z axis
-        # glBegin(GL_LINES)
-        # glColor3f(self.zAxisColor.r, self.zAxisColor.g, self.zAxisColor.b)
-        # glVertex3f(0, 0, -self.zSize)
-        # glVertex3f(0, 0, self.zSize)
-        # glEnd()
-
-        # # draw origin
-        # glPointSize(self.originRadius)
-
-        # glBegin(GL_POINTS)
-        # glColor3f(self.originColor.r, self.originColor.g, self.originColor.b)
-        # glVertex3f(0, 0, 0)
-        # glEnd()
-
-        # # enaable depth based merge
-        # glEnable(GL_DEPTH_TEST)
-        # enable lighting
-        #glEnable(GL_LIGHTING)

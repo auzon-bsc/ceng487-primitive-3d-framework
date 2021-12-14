@@ -270,32 +270,36 @@ class Camera:
 
 
     def getViewMatrix(self):
+        # compute current camera space
         self.computeCamSpace()
+        
         # assemble a rotation matrix from camera axises
         rotMat = numpy.array([	self.cameraX.x, self.cameraY.x, -self.cameraZ.x, 0.0,
                                 self.cameraX.y, self.cameraY.y, -self.cameraZ.y, 0.0,
                                 self.cameraX.z, self.cameraY.z, -self.cameraZ.z, 0.0,
                                 0.0, 0.0, 0.0, 1.0], dtype='float32').reshape(4,4)
+        
         # assemble a transformation matrix from the position of the camera
         traMat = numpy.array([	1.0, 0.0, 0.0, 0.0,
                                 0.0, 1.0, 0.0, 0.0,
                                 0.0, 0.0, 1.0, 0.0,
                                 -self.eye.x, -self.eye.y, -self.eye.z, 1.0], dtype='float32').reshape(4,4)
+        
         # multiply the matrices
         return traMat.dot(rotMat)
 
 
-    # matrix stuff
     def getProjMatrix(self):
         self.computeCamSpace()
 
+        # refer to the link for the calculations
+        # https://en.wikibooks.org/wiki/GLSL_Programming/Vertex_Transformations
         f = numpy.reciprocal(numpy.tan(numpy.divide(numpy.deg2rad(self.fov), 2.0)))
         base = self.near - self.far
         term_0_0 = numpy.divide(f, self.aspect)
         term_2_2 = numpy.divide(self.far + self.near, base)
         term_2_3 = numpy.divide(numpy.multiply(numpy.multiply(2, self.near), self.far), base)
 
-        # https://en.wikibooks.org/wiki/GLSL_Programming/Vertex_Transformations
         return  numpy.array([	term_0_0, 0.0, 0.0, 0.0,
                                 0.0, f, 0.0, 0.0,
                                 0.0, 0.0, term_2_2, -1,

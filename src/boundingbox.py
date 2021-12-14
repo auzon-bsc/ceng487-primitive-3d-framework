@@ -9,7 +9,7 @@ class BoundingBox:
 
 	def volume(self):
 		diagonal = self.max - self.min
-		return sqrlen(diagonal)
+		return diagonal.sqrlen()
 
 
 	def center(self):

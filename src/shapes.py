@@ -17,8 +17,9 @@ class _Shape:
     def __init__(self, name, vertices, faces, colors, UVs):
         self.vertices = vertices
         self.edges = []
-        self.faces = (numpy.array(faces, dtype='uintc')).flatten()
-        self.colors = []
+        self.faces = faces
+        self.colors = colors
+        self.UVs = UVs
         self.obj2World = Matrix()
         self.drawStyle = DrawStyle.NODRAW
         self.wireOnShaded = False
@@ -30,51 +31,42 @@ class _Shape:
         self.bboxObj = BoundingBox()
         self.bboxWorld = BoundingBox()
         self.calcBboxObj()
-        ## newly added code
-        # shape data as numpy arrays
-        self.position = numpy.array([0.0, 0.0, 0.0, 1.0], dtype='float32')
-        self.vertices = self._toNumpy(vertices)
-        self.colors = self._toNumpy(colors)
-        self.UVs = numpy.array(UVs, dtype='float32')
-        print(f"\npositions {self.position}")
-        print(f"\nvertices {self.vertices}")
-        print(f"\ncolors {self.colors}")
-        print(f"\nUVs {self.UVs}")
-        print(f"\nfaces {self.faces}")
-        # vertex and element buffer ojbjects
         self.VBO = None
         self.EBO = None
-        # shader programID
-        self.programID = None
+        self.programID = None                                           # shader programID
 
     def initializeVBO(self):
-        # generate VBO id
-        VBO = glGenBuffers(1)       
-        # bind VBO to gl array buffer
-        glBindBuffer(GL_ARRAY_BUFFER, VBO)
-        # concatenate our data
-        vertexData = numpy.concatenate((self.vertices, self.colors, self.UVs))      
-        # set the data
-        glBufferData( GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW )       
+        if self.VBO is not None and self.EBO is not None:
+            return
+
+        # concatenate our vertex data
+        verticesToNumpy = self._toNumpy(self.vertices)
+        colorsToNumpy = self._toNumpy(self.colors)
+        UVsToNumpy = self._toNumpy(self.UVs)
+        vertexData = numpy.concatenate((verticesToNumpy, colorsToNumpy, UVsToNumpy))      
         
-        # generate vertex indices buffer
+        # generate buffer for VBO and bind it
+        VBO = glGenBuffers(1)   
+        glBindBuffer(GL_ARRAY_BUFFER, VBO)
+        
+        # set the data and reset the binding
+        glBufferData( GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW )       
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        
+        # construct index data (faces as 1d numpy array)
+        indexData = (numpy.array(self.faces, dtype='uintc')).flatten()
+
+        # generate buffer for vertex indices (faces) and bind it
         EBO = glGenBuffers(1)
-        # bind VBO to gl array buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO) 
-        # set the data
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, self.faces, GL_STATIC_DRAW ) 
+
+        # set the data and reset the binding
+        glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexData, GL_STATIC_DRAW ) 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        # reset binding
-        glBindBuffer(GL_ARRAY_BUFFER, 0)        
+        
         # set the VBO id and index id
         self.VBO = VBO
         self.EBO = EBO
-
-    def getModelMatrix(self):
-        return numpy.array([1.0, 0.0, 0.0, 0.0,
-                            0.0, 1.0, 0.0, 0.0,
-                            0.0, 0.0, 1.0, 0.0,
-                            self.position[0], self.position[1], self.position[2], 1.0], dtype='float32')
 
     def _toNumpy(self, listOfObjects):
         tmpList = []
@@ -103,7 +95,7 @@ class _Shape:
 
 
     def draw(self):
-        # 
+        # set the draw style
         if self.drawStyle is DrawStyle.WIRE:
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
             glLineWidth(self.wireWidth)
@@ -117,25 +109,23 @@ class _Shape:
             self.obj2World.asNumpy()    # model matrix
         )
         
-        # initialize our vertex buffer object
+        # initialize our vertex buffer object and bind to array buffer
         self.initializeVBO()
-        
-        # bind our vertex buffer
         glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
 
         # get how many bytes one axis value of our hcoordinates 
         # (i.e x axis = 1 * float32 = 4 bytes)
         elementSize = numpy.dtype(numpy.float32).itemsize
 
-        # setup vertex attributes
+        # dimensions needed for stride and offset calculation
         vertexDim = 4       # (x, y, z, w)
         colorDim = 4        # (r, g, b, a)
         uvDim = 2           # (u, v)
 
-        # enable vertex position attribute 
-        glEnableVertexAttribArray(0)
         # set the starting position of the vertex attribute
         offset = 0
+        # enable vertex position attribute and set its pointer
+        glEnableVertexAttribArray(0)
         glVertexAttribPointer(
             0, 
             vertexDim, 
@@ -145,21 +135,36 @@ class _Shape:
             ctypes.c_void_p(offset)         # starting position
         )
         
-        # enable vertex color attribute
-        glEnableVertexAttribArray(1)
         # set the starting position of the color attribute
-        offset += (elementSize * len(self.vertices))
-        glVertexAttribPointer(1, colorDim, GL_FLOAT, GL_FALSE, elementSize * colorDim, ctypes.c_void_p(offset))
+        offset += (elementSize * vertexDim * len(self.vertices))
+        # enable vertex color attribute and set its pointer
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(
+            1, 
+            colorDim, 
+            GL_FLOAT, 
+            GL_FALSE, 
+            elementSize * colorDim,         # stride
+            ctypes.c_void_p(offset)         # first color position
+        )
         
-        # enable vertex uv pos attribute
-        glEnableVertexAttribArray(2)
         # set the starting position of the uv attribute
-        offset += elementSize * len(self.colors)
-        glVertexAttribPointer(2, vertexDim, GL_FLOAT, GL_FALSE, elementSize * uvDim, ctypes.c_void_p(offset))
+        offset += elementSize * colorDim * len(self.colors)
+        # enable vertex uv pos attribute and set its pointer
+        glEnableVertexAttribArray(2)
+        glVertexAttribPointer(
+            2, 
+            vertexDim, 
+            GL_FLOAT, 
+            GL_FALSE, 
+            elementSize * uvDim,            # stride
+            ctypes.c_void_p(offset)         # first uv position
+        )
         
+        faceDim = 4
         # draw elements (indexed draw / drawing according to faces)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.EBO)
-        glDrawElements(GL_QUADS, len(self.faces), GL_UNSIGNED_INT, None)
+        glDrawElements(GL_QUADS, len(self.faces) * faceDim, GL_UNSIGNED_INT, None)
 
         # reset attribute arrays
         glDisableVertexAttribArray(0)
@@ -177,11 +182,8 @@ class _Shape:
         self.obj2World = self.obj2World.product(translate)
 
 class Cube(_Shape):
-    def __init__(self, name, xSize, ySize, zSize, xDiv, yDiv, zDiv):
+    def __init__(self, name, xSize, ySize, zSize):
         vertices = []
-        xStep = xSize / (xDiv + 1.0)
-        yStep = ySize / (yDiv + 1.0)
-        zStep = zSize / (zDiv + 1.0)
 
         #add corners
         vertices.append( Point3f(-xSize / 2.0, -ySize / 2.0, zSize / 2.0) )
@@ -193,6 +195,7 @@ class Cube(_Shape):
         vertices.append( Point3f(-xSize / 2.0, ySize / 2.0, -zSize / 2.0) )
         vertices.append( Point3f(xSize / 2.0, ySize / 2.0, -zSize / 2.0) )
 
+        # add faces
         faces = []
         faces.append( [0, 2, 3, 1] )
         faces.append( [4, 6, 7, 5] )
@@ -201,7 +204,7 @@ class Cube(_Shape):
         faces.append( [2, 6, 7, 3] )
         faces.append( [4, 0, 1, 5] )
 
-        # colors
+        # add colors to each vertex
         colors = []
         for _ in range (len(vertices)):
             r = random.uniform(0, 1)

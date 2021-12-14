@@ -39,14 +39,15 @@ scene = Scene()
 view.setScene(scene)
 
 # create objects
-cube1 = Cube("cube", 1, 1, 1, 10, 10, 10)
+cube1 = Cube("cube", 1, 1, 1)
 cube1.Translate( 2, 0.5, 0)
 scene.add(cube1)
 
-cube2 = Cube("cube", 1.5, 1.5, 1.5, 10, 10, 10)
+cube2 = Cube("cube", 1.5, 1.5, 1.5)
 cube2.Translate( -2, 0, 0)
 scene.add(cube2)
 
+# create (default) shader
 shader = Shader()
 
 def main():
@@ -62,8 +63,9 @@ def main():
     
     window = glutCreateWindow("CENG487 Assigment Template")
     
-    # init shader
+    # init shader here because it cannot be initialized before creating window
     shader.initProgram()
+    # link the objects with shader
     cube1.programID = shader.programID
     cube2.programID = shader.programID
     grid.programID = shader.programID
