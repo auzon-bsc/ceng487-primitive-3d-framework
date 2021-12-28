@@ -45,7 +45,7 @@ class View:
         # set uniform projection matrix of the shader
         projLocation = glGetUniformLocation( self.grid.programID, "proj")
         glUniformMatrix4fv(projLocation, 1, GL_FALSE, self.camera.getProjMatrix())
-        self.grid.draw()
+        # self.grid.draw()
 
         # draw nodes
         for node in self.scene.nodes:

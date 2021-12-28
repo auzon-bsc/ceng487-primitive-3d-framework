@@ -5,6 +5,8 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
 from math import pi,sin,cos,sqrt,acos
+
+from numpy import dtype
 from shader import Shader
 from vector import *
 from matrix import *
@@ -14,12 +16,12 @@ from defs import DrawStyle
 __all__ = ['_Shape', 'Cube', 'DrawStyle']
 
 class _Shape:
-    def __init__(self, name, vertices, faces, colors, UVs):
+    def __init__(self, name, vertices, colors, UVs, normals):
         self.vertices = vertices
         self.edges = []
-        self.faces = faces
         self.colors = colors
         self.UVs = UVs
+        self.normals = normals
         self.obj2World = Matrix()
         self.drawStyle = DrawStyle.NODRAW
         self.wireOnShaded = False
@@ -42,7 +44,7 @@ class _Shape:
         # concatenate our vertex data
         verticesToNumpy = self._toNumpy(self.vertices)
         colorsToNumpy = self._toNumpy(self.colors)
-        UVsToNumpy = self._toNumpy(self.UVs)
+        UVsToNumpy = (numpy.array(self.UVs, dtype='float32')).flatten()
         vertexData = numpy.concatenate((verticesToNumpy, colorsToNumpy, UVsToNumpy))      
         
         # generate buffer for VBO and bind it
@@ -53,20 +55,8 @@ class _Shape:
         glBufferData( GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW )       
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         
-        # construct index data (faces as 1d numpy array)
-        indexData = (numpy.array(self.faces, dtype='uintc')).flatten()
-
-        # generate buffer for vertex indices (faces) and bind it
-        EBO = glGenBuffers(1)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO) 
-
-        # set the data and reset the binding
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexData, GL_STATIC_DRAW ) 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        
-        # set the VBO id and index id
+        # set the VBO id
         self.VBO = VBO
-        self.EBO = EBO
 
     def _toNumpy(self, listOfObjects):
         tmpList = []
@@ -161,10 +151,9 @@ class _Shape:
             ctypes.c_void_p(offset)         # first uv position
         )
         
-        faceDim = 4
         # draw elements (indexed draw / drawing according to faces)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.EBO)
-        glDrawElements(GL_QUADS, len(self.faces) * faceDim, GL_UNSIGNED_INT, None)
+        glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
+        glDrawArrays(GL_QUADS, 0, len(self.vertices))
 
         # reset attribute arrays
         glDisableVertexAttribArray(0)
