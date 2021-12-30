@@ -4,20 +4,20 @@
 # December 2021
 
 import sys
-import numpy
-import math
 
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
 from shader import *
+from shape_factory import ShapeFactory
 from vector import *
 from matrix import *
 from shapes import *
 from camera import *
 from scene import *
 from view import *
+from obj_parser import ObjParser
 
 # window size
 width, height = 640, 480
@@ -43,17 +43,26 @@ view = View(camera, grid)
 scene = Scene()
 view.setScene(scene)
 
-# create objects
-cube1 = Cube("cube", 1, 1, 1)
-cube1.Translate( 2, 0.5, 0)
-scene.add(cube1)
+# parse object files from command line
+parser = ObjParser()
+parser.parseCL()
+parser.parseFilesLines()
+objsData = parser.parseWavefrontObjFiles()
 
-cube2 = Cube("cube", 1.5, 1.5, 1.5)
-cube2.Translate( -2, 0, 0)
-scene.add(cube2)
+# create the objects
+factory = ShapeFactory(objsData)
+shapes = factory.createAll()
+d = 0
+for shape in shapes:
+    shape.addTexture("Bricks_001.png")
+    shape.addTexture("Bricks_003.png")
+    shape.Translate(d, 0, 0)
+    d += 2
+    scene.add(shape)
 
 # create (default) shader
 shader = Shader()
+
 
 def main():
     global view
@@ -66,13 +75,14 @@ def main():
     glutInitWindowSize(width, height)
     glutInitWindowPosition(200, 200)
     
-    window = glutCreateWindow("CENG487 Assigment Template")
+    glutCreateWindow("CENG487 Assigment Template")
     
     # init shader here because it cannot be initialized before creating window
     shader.initProgram()
     # link the objects with shader
-    cube1.programID = shader.programID
-    cube2.programID = shader.programID
+    for shape in shapes:
+        shape.programID = shader.programID
+
     grid.programID = shader.programID
 
     # define callbacks

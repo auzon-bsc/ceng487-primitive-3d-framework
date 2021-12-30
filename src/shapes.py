@@ -5,21 +5,24 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 
 from math import pi,sin,cos,sqrt,acos
+
+from numpy import dtype
 from shader import Shader
 from vector import *
 from matrix import *
 from boundingbox import *
 from defs import DrawStyle
+from PIL import Image
 
 __all__ = ['_Shape', 'Cube', 'DrawStyle']
 
 class _Shape:
-    def __init__(self, name, vertices, faces, colors, UVs):
+    def __init__(self, name, vertices, colors, UVs, normals):
         self.vertices = vertices
         self.edges = []
-        self.faces = faces
         self.colors = colors
         self.UVs = UVs
+        self.normals = normals
         self.obj2World = Matrix()
         self.drawStyle = DrawStyle.NODRAW
         self.wireOnShaded = False
@@ -32,17 +35,56 @@ class _Shape:
         self.bboxWorld = BoundingBox()
         self.calcBboxObj()
         self.VBO = None
-        self.EBO = None
-        self.programID = None                                           # shader programID
+        self.programID = None
+        self.textureFileNames = []
+        self.textureIDs = []
+        self.blendRatio = 100
 
+    def addBlendRatio(self, amount):
+        newRatio = self.blendRatio + amount
+        if newRatio < 0 or newRatio > 100:
+            return
+        self.blendRatio = newRatio
+
+    def addTexture(self, textureFileName):
+        self.textureFileNames.append(textureFileName)
+
+    def loadTextures(self):
+        if len(self.textureIDs) > 0:
+            return
+
+        for textureFileName in self.textureFileNames:
+            # load texture - flip int verticallt to convert from pillow to OpenGL orientation
+            image = Image.open(textureFileName).transpose(Image.FLIP_TOP_BOTTOM)
+
+            # create a new id
+            texID = glGenTextures(1)
+            # bind to the new id for state
+            glBindTexture(GL_TEXTURE_2D, texID)
+
+            # set texture params
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+            # copy texture data
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.size[0], image.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE,
+                            numpy.frombuffer( image.tobytes(), dtype = numpy.uint8 ) )
+            glGenerateMipmap(GL_TEXTURE_2D)
+
+            self.textureIDs.append(texID)
+
+    
     def initializeVBO(self):
-        if self.VBO is not None and self.EBO is not None:
+        if self.VBO is not None:
             return
 
         # concatenate our vertex data
         verticesToNumpy = self._toNumpy(self.vertices)
         colorsToNumpy = self._toNumpy(self.colors)
-        UVsToNumpy = self._toNumpy(self.UVs)
+        UVsToNumpy = (numpy.array(self.UVs, dtype='float32')).flatten()
         vertexData = numpy.concatenate((verticesToNumpy, colorsToNumpy, UVsToNumpy))      
         
         # generate buffer for VBO and bind it
@@ -53,20 +95,8 @@ class _Shape:
         glBufferData( GL_ARRAY_BUFFER, vertexData, GL_STATIC_DRAW )       
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         
-        # construct index data (faces as 1d numpy array)
-        indexData = (numpy.array(self.faces, dtype='uintc')).flatten()
-
-        # generate buffer for vertex indices (faces) and bind it
-        EBO = glGenBuffers(1)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO) 
-
-        # set the data and reset the binding
-        glBufferData( GL_ELEMENT_ARRAY_BUFFER, indexData, GL_STATIC_DRAW ) 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
-        
-        # set the VBO id and index id
+        # set the VBO id
         self.VBO = VBO
-        self.EBO = EBO
 
     def _toNumpy(self, listOfObjects):
         tmpList = []
@@ -108,6 +138,24 @@ class _Shape:
             GL_FALSE,                   #
             self.obj2World.asNumpy()    # model matrix
         )
+
+        if len(self.textureFileNames) > 0 and len(self.textureIDs) == 0:
+            self.loadTextures()
+
+            textureLocation = glGetUniformLocation(self.programID, "tex1")
+            glUniform1i(textureLocation, self.textureIDs[0])
+            # now activate texture units
+            glActiveTexture(GL_TEXTURE0 + self.textureIDs[0])
+            glBindTexture(GL_TEXTURE_2D, self.textureIDs[0])
+            
+            textureLocation = glGetUniformLocation(self.programID, "tex2")
+            glUniform1i(textureLocation, self.textureIDs[1])
+            # now activate texture units
+            glActiveTexture(GL_TEXTURE0 + self.textureIDs[1])
+            glBindTexture(GL_TEXTURE_2D, self.textureIDs[1])
+
+        blendRatioLocation = glGetUniformLocation(self.programID, "blendRatio")
+        glUniform1f(blendRatioLocation, self.blendRatio)
         
         # initialize our vertex buffer object and bind to array buffer
         self.initializeVBO()
@@ -150,21 +198,21 @@ class _Shape:
         
         # set the starting position of the uv attribute
         offset += elementSize * colorDim * len(self.colors)
+
         # enable vertex uv pos attribute and set its pointer
         glEnableVertexAttribArray(2)
         glVertexAttribPointer(
             2, 
-            vertexDim, 
+            uvDim, 
             GL_FLOAT, 
             GL_FALSE, 
             elementSize * uvDim,            # stride
             ctypes.c_void_p(offset)         # first uv position
         )
         
-        faceDim = 4
         # draw elements (indexed draw / drawing according to faces)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.EBO)
-        glDrawElements(GL_QUADS, len(self.faces) * faceDim, GL_UNSIGNED_INT, None)
+        glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
+        glDrawArrays(GL_QUADS, 0, len(self.vertices))
 
         # reset attribute arrays
         glDisableVertexAttribArray(0)
