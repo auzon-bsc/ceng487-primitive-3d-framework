@@ -15,7 +15,11 @@ class ShapeFactory:
             UVs = []
             normals = []
             for face in objData['faces']:
-                for vertexIndices in face:
+                for i in range(4):
+                    if i == len(face):
+                        vertexIndices = face[i-1]
+                    else:
+                        vertexIndices = face[i]
                     v = vertexIndices[0]
                     vt = vertexIndices[1]
                     vn = vertexIndices[2]
@@ -23,9 +27,9 @@ class ShapeFactory:
                     y = (objData['vertices'][v])[1]
                     z = (objData['vertices'][v])[2]
                     vertices.append(Point3f(x, y, z))
-                    r = (objData['vertices'][v])[0]
-                    g = (objData['vertices'][v])[1]
-                    b = (objData['vertices'][v])[2]
+                    r = 1
+                    g = 1
+                    b = 1
                     colors.append(ColorRGBA(r, g, b, 1.0))
                     u = (objData['UVs'][vt])[0]
                     v = (objData['UVs'][vt])[1]
@@ -33,6 +37,6 @@ class ShapeFactory:
                     x = (objData['normals'][vn])[0]
                     y = (objData['normals'][vn])[1]
                     z = (objData['normals'][vn])[2]
-                    normals.append([x, y, z])            
+                    normals.append([x, y, z])        
             shapes.append(_Shape('Shape', vertices, colors, UVs, normals))
         return shapes

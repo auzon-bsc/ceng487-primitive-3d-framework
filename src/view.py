@@ -45,7 +45,7 @@ class View:
         # set uniform projection matrix of the shader
         projLocation = glGetUniformLocation( self.grid.programID, "proj")
         glUniformMatrix4fv(projLocation, 1, GL_FALSE, self.camera.getProjMatrix())
-        # self.grid.draw()
+        self.grid.draw()
 
         # draw nodes
         for node in self.scene.nodes:
@@ -123,6 +123,17 @@ class View:
                     node.wireOnShaded = True
                     self.draw()
 
+        if key == b'+':
+            for node in self.scene.nodes:
+                node.addBlendRatio(5)
+                self.draw()
+
+        if key == b'-':
+            for node in self.scene.nodes:
+                node.addBlendRatio(-5)
+                self.draw()
+
+
 
     # The function called when our window is resized (which shouldn't happen if you enable fullscreen, below)
     def resizeView(self, width, height):
@@ -151,8 +162,6 @@ class View:
             self.camera.center.x += .5
             self.camera.computeCamSpace()
             self.setCameraIsMoving( True )
-
-        
 
 
     def mousePressed(self, button, state, x, y):
@@ -224,13 +233,22 @@ class Grid(_Shape):
             id2 = (indexZ + 1) * (xSize + 1) + indexX
             faces.append([id1, id1 + 1, id2 + 1, id2])
 
+        tmp = []
+        for face in faces:
+            for index in face:
+                currentVertex = vertices[index]
+                tmp.append(Point3f(currentVertex.x, currentVertex.y, currentVertex.z))
+        vertices = tmp
+
         colors = []
         for _ in range(len(vertices)):
             colors.append(ColorRGBA(0.3, 0.3, 0.3, 1.0))
 
         UVs = []
 
-        _Shape.__init__(self, name, vertices, faces, colors, UVs)
+        normals = []
+
+        _Shape.__init__(self, name, vertices, colors, UVs, normals)
 
         self.fixedDrawStyle = True
 

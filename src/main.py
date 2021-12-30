@@ -4,8 +4,6 @@
 # December 2021
 
 import sys
-import numpy
-import math
 
 from OpenGL.GL import *
 from OpenGL.GLUT import *
@@ -54,11 +52,17 @@ objsData = parser.parseWavefrontObjFiles()
 # create the objects
 factory = ShapeFactory(objsData)
 shapes = factory.createAll()
+d = 0
 for shape in shapes:
+    shape.addTexture("Bricks_001.png")
+    shape.addTexture("Bricks_003.png")
+    shape.Translate(d, 0, 0)
+    d += 2
     scene.add(shape)
 
 # create (default) shader
 shader = Shader()
+
 
 def main():
     global view
@@ -71,7 +75,7 @@ def main():
     glutInitWindowSize(width, height)
     glutInitWindowPosition(200, 200)
     
-    window = glutCreateWindow("CENG487 Assigment Template")
+    glutCreateWindow("CENG487 Assigment Template")
     
     # init shader here because it cannot be initialized before creating window
     shader.initProgram()
