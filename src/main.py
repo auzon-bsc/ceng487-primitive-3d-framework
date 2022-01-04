@@ -29,8 +29,8 @@ grid.setWireWidth(0.1)
 
 # create camera
 camera = Camera()
-camera.createView( 	Point3f(0.0, 0.0, 10.0), \
-                    Point3f(0.0, 0.0, 0.0), \
+camera.createView( 	Point3f(0.0, 50.0, 100.0), \
+                    Point3f(0.0, 15.0, 0.0), \
                     Vector3f(0.0, 1.0, 0.0) )
 camera.setNear(1)
 camera.setFar(1000)

@@ -59,7 +59,10 @@ class ObjParser():
                         indicesString = token.split("/")
                         indices = []
                         for indexString in indicesString:
-                            indices.append(int(indexString) - 1)
+                            if indexString == '':
+                                indices.append(-1)
+                            else:
+                                indices.append(int(indexString) - 1)
                         face.append(indices)
                     objData['faces'].append(face)
             objsData.append(objData)
