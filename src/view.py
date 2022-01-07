@@ -30,6 +30,9 @@ class View:
         self.mouseY = -1
 
     def draw(self):
+        for light in self.scene.lights:
+            light.bindToProgram(self.grid.programID)
+
         # set color to scene background color
         glClearColor(self.bgColor.r, self.bgColor.g, self.bgColor.b, self.bgColor.a)
         
@@ -45,10 +48,14 @@ class View:
         # set uniform projection matrix of the shader
         projLocation = glGetUniformLocation( self.grid.programID, "proj")
         glUniformMatrix4fv(projLocation, 1, GL_FALSE, self.camera.getProjMatrix())
+
         self.grid.draw()
 
         # draw nodes
         for node in self.scene.nodes:
+            for light in self.scene.lights:
+                light.bindToProgram(node.programID)
+
             # use the shader linked to the object
             glUseProgram(node.programID)
             

@@ -8,6 +8,7 @@ import sys
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+from light import DirectionalLight
 
 from shader import *
 from shape_factory import ShapeFactory
@@ -55,10 +56,16 @@ shapes = factory.createAll()
 d = 0
 for shape in shapes:
     shape.addTexture("Bricks_001.png")
-    shape.addTexture("Bricks_003.png")
+    # shape.addTexture("Bricks_003.png")
     shape.Translate(d, 0, 0)
     d += 2
     scene.add(shape)
+
+lightDir = numpy.array([1.0, 1.0, 1.0, .0], dtype='float32')
+lightColor =  numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32')
+lightIntensity = 1.0
+directionalLight = DirectionalLight(lightDir, lightColor, lightIntensity)
+scene.addLight(directionalLight)
 
 # create (default) shader
 shader = Shader()
