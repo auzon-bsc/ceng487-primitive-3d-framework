@@ -85,7 +85,8 @@ class _Shape:
         verticesToNumpy = self._toNumpy(self.vertices)
         colorsToNumpy = self._toNumpy(self.colors)
         UVsToNumpy = (numpy.array(self.UVs, dtype='float32')).flatten()
-        vertexData = numpy.concatenate((verticesToNumpy, colorsToNumpy, UVsToNumpy))      
+        normalsToNumpy = (numpy.array(self.normals, dtype='float32')).flatten()
+        vertexData = numpy.concatenate((verticesToNumpy, colorsToNumpy, UVsToNumpy, normalsToNumpy))      
         
         # generate buffer for VBO and bind it
         VBO = glGenBuffers(1)   
@@ -147,15 +148,6 @@ class _Shape:
             # now activate texture units
             glActiveTexture(GL_TEXTURE0 + self.textureIDs[0])
             glBindTexture(GL_TEXTURE_2D, self.textureIDs[0])
-            
-            textureLocation = glGetUniformLocation(self.programID, "tex2")
-            glUniform1i(textureLocation, self.textureIDs[1])
-            # now activate texture units
-            glActiveTexture(GL_TEXTURE0 + self.textureIDs[1])
-            glBindTexture(GL_TEXTURE_2D, self.textureIDs[1])
-
-        blendRatioLocation = glGetUniformLocation(self.programID, "blendRatio")
-        glUniform1f(blendRatioLocation, self.blendRatio)
         
         # initialize our vertex buffer object and bind to array buffer
         self.initializeVBO()
@@ -169,6 +161,7 @@ class _Shape:
         vertexDim = 4       # (x, y, z, w)
         colorDim = 4        # (r, g, b, a)
         uvDim = 2           # (u, v)
+        normalDim = 3       # (x, y, z)
 
         # set the starting position of the vertex attribute
         offset = 0
@@ -209,6 +202,20 @@ class _Shape:
             elementSize * uvDim,            # stride
             ctypes.c_void_p(offset)         # first uv position
         )
+
+        # set the starting position of the uv attribute
+        offset += elementSize * uvDim * len(self.UVs)
+
+        # enable vertex normal pos attribute and set its pointer
+        glEnableVertexAttribArray(3)
+        glVertexAttribPointer(
+            3, 
+            normalDim, 
+            GL_FLOAT, 
+            GL_FALSE, 
+            elementSize * normalDim,            # stride
+            ctypes.c_void_p(offset)         # first uv position
+        )
         
         # draw elements (indexed draw / drawing according to faces)
         glBindBuffer(GL_ARRAY_BUFFER, self.VBO)
@@ -218,6 +225,7 @@ class _Shape:
         glDisableVertexAttribArray(0)
         glDisableVertexAttribArray(1)
         glDisableVertexAttribArray(2)
+        glDisableVertexAttribArray(3)
 
         # reset binded buffer
         glBindBuffer(GL_ARRAY_BUFFER, 0)

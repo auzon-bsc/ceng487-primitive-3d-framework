@@ -8,6 +8,7 @@ import sys
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+from light import DirectionalLight, PointLight, Spotlight
 
 from shader import *
 from shape_factory import ShapeFactory
@@ -29,8 +30,8 @@ grid.setWireWidth(0.1)
 
 # create camera
 camera = Camera()
-camera.createView( 	Point3f(0.0, 0.0, 10.0), \
-                    Point3f(0.0, 0.0, 0.0), \
+camera.createView( 	Point3f(0.0, 50.0, 100.0), \
+                    Point3f(0.0, 15.0, 0.0), \
                     Vector3f(0.0, 1.0, 0.0) )
 camera.setNear(1)
 camera.setFar(1000)
@@ -55,10 +56,32 @@ shapes = factory.createAll()
 d = 0
 for shape in shapes:
     shape.addTexture("Bricks_001.png")
-    shape.addTexture("Bricks_003.png")
+    # shape.addTexture("Bricks_003.png")
     shape.Translate(d, 0, 0)
     d += 2
     scene.add(shape)
+
+directionalLight = DirectionalLight(
+    dir = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    intensity = 0.3)
+scene.addLight(directionalLight)
+
+pointLight = PointLight(
+    pos = numpy.array([5.0, 25.0, 5.0, 1.0], dtype='float32'),
+    color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    intensity = 0.5
+)
+scene.addLight(pointLight)
+
+spotLight = Spotlight(
+    pos = numpy.array([0.0, 50.0, 200.0, 1.0], dtype='float32'),
+    cutoff = cos(0.1),
+    color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    intensity = 0.7,
+    dir = numpy.array([0.0, -0.15, -1.0, 1.0], dtype='float32'),
+)
+scene.addLight(spotLight)
 
 # create (default) shader
 shader = Shader()
