@@ -62,7 +62,7 @@ for shape in shapes:
     scene.add(shape)
 
 directionalLight = DirectionalLight(
-    dir = numpy.array([1.0, 1.0, 1.0, .0], dtype='float32'),
+    dir = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
     color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
     intensity = 0.3)
 scene.addLight(directionalLight)

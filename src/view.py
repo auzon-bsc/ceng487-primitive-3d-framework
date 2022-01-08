@@ -8,6 +8,8 @@ from shapes import *
 from scene import *
 from defs import *
 
+import time
+
 class Event:
     def __init__(self):
         self.x = -1
@@ -37,9 +39,10 @@ class View:
         for light in self.scene.lights:
             light.bindToProgram(self.grid.programID)
 
-        self.cycleAngle += 8
-        self.scene.lights[0].dir[0] += sin(self.cycleAngle) * self.r
-        self.scene.lights[0].dir[1] += cos(self.cycleAngle) * self.r
+        self.cycleAngle = (self.cycleAngle + (pi / 25)) % 2*pi
+        
+        self.scene.lights[0].dir[0] = sin(self.cycleAngle) * self.r
+        self.scene.lights[0].dir[1] = cos(self.cycleAngle) * self.r
 
         # set color to scene background color
         glClearColor(self.bgColor.r, self.bgColor.g, self.bgColor.b, self.bgColor.a)
