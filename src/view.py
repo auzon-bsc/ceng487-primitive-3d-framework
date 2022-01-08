@@ -28,10 +28,18 @@ class View:
         self.event = Event()
         self.mouseX = -1
         self.mouseY = -1
+        self.cycleAngle = 0
+        self.relativeFrame = 0
+        self.r = 1
+        self.isLightAnim = True
 
     def draw(self):
         for light in self.scene.lights:
             light.bindToProgram(self.grid.programID)
+
+        self.cycleAngle += 8
+        self.scene.lights[0].dir[0] += sin(self.cycleAngle) * self.r
+        self.scene.lights[0].dir[1] += cos(self.cycleAngle) * self.r
 
         # set color to scene background color
         glClearColor(self.bgColor.r, self.bgColor.g, self.bgColor.b, self.bgColor.a)
@@ -66,6 +74,12 @@ class View:
             # set uniform projection matrix of the shader
             projLocation = glGetUniformLocation( node.programID, "proj")
             glUniformMatrix4fv(projLocation, 1, GL_FALSE, self.camera.getProjMatrix())
+
+            eyePosLocation = glGetUniformLocation( node.programID, "eyePos")
+            glUniform3f(eyePosLocation, self.camera.eye.x, self.camera.eye.y, self.camera.eye.z)
+
+            blinnFactorLocation = glGetUniformLocation( node.programID, "isBlinn")
+            glUniform1f(blinnFactorLocation, self.scene.isBlinn)
             
             # draw the object
             node.draw()
@@ -109,6 +123,35 @@ class View:
         if key == b'f':
             self.camera.reset()
             self.draw()
+
+        if key == b'1':
+            if self.scene.lights[0].isOn == 0.0:
+                self.scene.lights[0].isOn = 1.0
+            elif self.scene.lights[0].isOn == 1.0:
+                self.scene.lights[0].isOn = 0.0
+            self.draw()
+        
+        if key == b'2':
+            if self.scene.lights[1].isOn == 0.0:
+                self.scene.lights[1].isOn = 1.0
+            elif self.scene.lights[1].isOn == 1.0:
+                self.scene.lights[1].isOn = 0.0
+            self.draw()
+        
+        if key == b'3':
+            if self.scene.lights[2].isOn == 0.0:
+                self.scene.lights[2].isOn = 1.0
+            elif self.scene.lights[2].isOn == 1.0:
+                self.scene.lights[2].isOn = 0.0
+            self.draw()
+
+        if key == b'b':
+            if self.scene.isBlinn == False:
+                self.scene.isBlinn = True
+            elif self.scene.isBlinn == True:
+                self.scene.isBlinn = False
+            self.draw()
+
 
         if key == b'4':
             for node in self.scene.nodes:
@@ -221,7 +264,8 @@ class View:
 
     # The main drawing function
     def idleFunction(self):
-        if self.isObjectAnim() or self.isCameraMoving():
+
+        if self.isObjectAnim() or self.isCameraMoving() or self.isLightAnim:
             self.draw()
 
 

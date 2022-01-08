@@ -8,7 +8,7 @@ import sys
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-from light import DirectionalLight
+from light import DirectionalLight, PointLight, Spotlight
 
 from shader import *
 from shape_factory import ShapeFactory
@@ -61,11 +61,27 @@ for shape in shapes:
     d += 2
     scene.add(shape)
 
-lightDir = numpy.array([1.0, 1.0, 1.0, .0], dtype='float32')
-lightColor =  numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32')
-lightIntensity = 1.0
-directionalLight = DirectionalLight(lightDir, lightColor, lightIntensity)
+directionalLight = DirectionalLight(
+    dir = numpy.array([1.0, 1.0, 1.0, .0], dtype='float32'),
+    color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    intensity = 0.3)
 scene.addLight(directionalLight)
+
+pointLight = PointLight(
+    pos = numpy.array([5.0, 25.0, 5.0, 1.0], dtype='float32'),
+    color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    intensity = 0.5
+)
+scene.addLight(pointLight)
+
+spotLight = Spotlight(
+    pos = numpy.array([0.0, 50.0, 200.0, 1.0], dtype='float32'),
+    cutoff = cos(0.1),
+    color = numpy.array([1.0, 1.0, 1.0, 1.0], dtype='float32'),
+    intensity = 0.7,
+    dir = numpy.array([0.0, -0.15, -1.0, 1.0], dtype='float32'),
+)
+scene.addLight(spotLight)
 
 # create (default) shader
 shader = Shader()
